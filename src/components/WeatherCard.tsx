@@ -50,7 +50,7 @@ export function WeatherCard() {
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-lg text-blue-500">
+          <div className="p-2 bg-emerald-50 rounded-lg text-emerald-500">
             <Wind size={20} />
           </div>
           <div>

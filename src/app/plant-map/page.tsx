@@ -1,35 +1,41 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { PlantStatusHeader } from "@/components/PlantStatusHeader";
 import { mockData } from "@/data/mock";
 import { Search, ChevronLeft, MapPin } from "lucide-react";
+
+const MapComponent = dynamic(() => import("@/components/MapComponent"), {
+  ssr: false,
+  loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-2xl border-4 border-white shadow-inner font-bold text-gray-400">Loading Map...</div>
+});
 
 // Mocking Plants containing Panels (using inverters as panels)
 const PLANTS = [
   {
     id: 'PL-01',
-    name: 'ENFLO Chennai',
+    name: 'ENECO Chennai',
     location: 'Chennai, TN',
     status: 'Normal',
     panels: mockData.inverters.slice(0, 4),
-    x: '78%', y: '15%'
+    lat: 13.0827, lng: 80.2707
   },
   {
     id: 'PL-02',
-    name: 'ENFLO Coimbatore',
+    name: 'ENECO Coimbatore',
     location: 'Coimbatore, TN',
     status: 'Warning',
     panels: mockData.inverters.slice(4, 7),
-    x: '25%', y: '50%'
+    lat: 11.0168, lng: 76.9558
   },
   {
     id: 'PL-03',
-    name: 'ENFLO Madurai',
+    name: 'ENECO Madurai',
     location: 'Madurai, TN',
     status: 'Normal',
     panels: mockData.inverters.slice(7, 8),
-    x: '40%', y: '75%'
+    lat: 9.9252, lng: 78.1198
   }
 ];
 
@@ -92,58 +98,14 @@ export default function PlantMapPage() {
         <div className="flex-1 bg-gray-50 rounded-xl border border-border/50 relative overflow-hidden flex items-center justify-center p-8">
           
           {!selectedPlant ? (
-            // Show Map View
-            <div className="relative w-full max-w-4xl h-[500px] bg-[#eef2f6] rounded-2xl border-4 border-white shadow-inner overflow-hidden">
-              {/* Abstract Map Graphic (Placeholder for Tamil Nadu Map) */}
-              <svg className="absolute inset-0 w-full h-full text-white drop-shadow-md" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid meet">
-                <path d="M 280 50 C 300 80 320 120 310 160 C 300 200 290 230 260 260 C 230 290 200 320 180 360 C 160 400 170 430 150 460 C 130 490 100 480 80 460 C 60 440 50 400 60 360 C 70 320 90 280 120 250 C 150 220 170 180 190 140 C 210 100 240 60 280 50 Z" fill="#cbe3ee" stroke="#94a3b8" strokeWidth="2" />
-              </svg>
-
-              {/* Grid overlay */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#0D9488 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-              
-              {/* Plant Markers */}
-              {displayPlants.map((plant) => (
-                <div 
-                  key={plant.id}
-                  onClick={() => {
-                    setSelectedPlantId(plant.id);
-                    setSearchQuery("");
-                  }}
-                  className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
-                  style={{ left: plant.x, top: plant.y }}
-                >
-                  {/* Pulse Effect */}
-                  <div className={`absolute -inset-2 rounded-full animate-ping opacity-20 ${
-                    plant.status === 'Normal' ? 'bg-success' : 
-                    plant.status === 'Warning' ? 'bg-warning' : 'bg-danger'
-                  }`}></div>
-                  
-                  {/* Pin */}
-                  <div className={`relative flex items-center justify-center w-6 h-6 rounded-full border-2 border-white shadow-lg z-10 ${
-                    plant.status === 'Normal' ? 'bg-success' : 
-                    plant.status === 'Warning' ? 'bg-warning' : 'bg-danger'
-                  }`}>
-                    <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-                  </div>
-                  
-                  {/* Tooltip Card */}
-                  <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-xl border border-border p-3 w-48 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-20 pointer-events-none">
-                    <h3 className="font-bold text-primary-text text-sm">{plant.name}</h3>
-                    <p className="text-xs text-secondary-text mb-2">{plant.location}</p>
-                    <div className="flex justify-between items-center pt-2 border-t border-border/50">
-                      <span className="text-xs font-bold">{plant.panels.length} Panels</span>
-                      <span className="text-[10px] font-bold text-accent-dark">View →</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {displayPlants.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center text-secondary-text font-bold bg-white/50 backdrop-blur-sm z-30">
-                  No plants match your search.
-                </div>
-              )}
+            <div className="relative w-full h-[500px]">
+              <MapComponent 
+                plants={displayPlants} 
+                onSelectPlant={(id) => {
+                  setSelectedPlantId(id);
+                  setSearchQuery("");
+                }} 
+              />
             </div>
           ) : (
             // Show Panels for selected plant

@@ -8,7 +8,7 @@ import { SimulationProvider } from "@/context/SimulationContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ENFLO Solar Intelligence",
+  title: "ENECO Solar Intelligence",
   description: "Solar intelligence, clearly visualized.",
 };
 

@@ -50,8 +50,8 @@ export function EnergyFlowCard() {
         {/* Destinations */}
         <div className="w-full flex justify-between mt-4 px-2">
           <div className="flex flex-col items-center text-center">
-             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-1 border border-blue-100">
-               <Factory size={18} className="text-blue-600" />
+             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-1 border border-emerald-100">
+               <Factory size={18} className="text-emerald-600" />
              </div>
              <div className="font-semibold text-primary-text text-xs">Factory</div>
              <div className="text-[10px] text-secondary-text font-medium">{directToFactoryMw} MW</div>

@@ -12,17 +12,17 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 const PLANTS = [
   {
     id: 'PL-01',
-    name: 'ENFLO Chennai',
+    name: 'ENECO Chennai',
     panels: ['INV-01', 'INV-02', 'INV-03', 'INV-04'].map((id, i) => ({ ...mockData.inverters[i], id })),
   },
   {
     id: 'PL-02',
-    name: 'ENFLO Coimbatore',
+    name: 'ENECO Coimbatore',
     panels: ['INV-05', 'INV-06', 'INV-07'].map((id, i) => ({ ...mockData.inverters[i + 4], id })),
   },
   {
     id: 'PL-03',
-    name: 'ENFLO Madurai',
+    name: 'ENECO Madurai',
     panels: ['INV-08', 'INV-09'].map((id, i) => ({ ...mockData.inverters[i % mockData.inverters.length], id })),
   }
 ];
@@ -156,7 +156,7 @@ function AssetsPageContent() {
                   <td className="px-6 py-4">
                     <button 
                       onClick={() => setHealthModalAsset(inv.id)}
-                      className="p-2 rounded-lg bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors tooltip-trigger"
+                      className="p-2 rounded-lg bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-600 transition-colors tooltip-trigger"
                     >
                       <Activity size={16} />
                       <div className="tooltip-content !-translate-x-1/2 !left-1/2 !right-auto">View Health</div>
@@ -182,7 +182,7 @@ function AssetsPageContent() {
           <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[700px] max-w-[95vw] animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100">
                   <Activity size={24} />
                 </div>
                 <div>
@@ -207,7 +207,7 @@ function AssetsPageContent() {
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Low Production</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
-                <div className="text-xl font-black text-blue-500">2</div>
+                <div className="text-xl font-black text-emerald-500">2</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Maintenance</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">

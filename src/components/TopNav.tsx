@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 ];
 
 const SEARCH_DATA = [
-  { id: '1', title: 'ENFLO MAIN', type: 'Solar Plant', path: '/' },
+  { id: '1', title: 'ENECO MAIN', type: 'Solar Plant', path: '/' },
   { id: '2', title: 'XYZ', type: 'Solar Plant', path: '/plant-map' },
   { id: '3', title: 'ABC', type: 'Location', path: '/plant-map' },
   { id: '4', title: 'California, USA', type: 'Location', path: '/plant-map' },
@@ -91,7 +91,7 @@ export function TopNav() {
             E
           </div>
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-lg tracking-tight">ENFLO Solar</span>
+            <span className="font-semibold text-lg tracking-tight">ENECO Solar</span>
           </div>
         </div>
         
@@ -147,7 +147,7 @@ export function TopNav() {
                         className="block px-4 py-3 hover:bg-gray-50 border-b border-border/50 last:border-0 transition-colors"
                       >
                         <div className="font-bold text-primary-text text-sm">{item.title}</div>
-                        <div className="text-xs text-blue-400 mt-0.5">{item.type}</div>
+                        <div className="text-xs text-emerald-400 mt-0.5">{item.type}</div>
                       </Link>
                     ))}
                   </div>
@@ -318,11 +318,11 @@ export function TopNav() {
                     onClick={() => {
                       const csvContent = "data:text/csv;charset=utf-8," 
                         + "Asset ID,Plant Name,Status,AC Power (kW),DC Power (kW),Efficiency (%),Temperature (°C)\n"
-                        + "INV-01,ENFLO Chennai,Normal,450.2,465.1,96.8,42.5\n"
-                        + "INV-02,ENFLO Chennai,Normal,448.9,463.8,96.7,43.1\n"
-                        + "INV-03,ENFLO Chennai,Warning,420.5,462.1,91.0,48.2\n"
-                        + "INV-04,ENFLO Chennai,Normal,451.0,466.0,96.7,41.9\n"
-                        + "INV-05,ENFLO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
+                        + "INV-01,ENECO Chennai,Normal,450.2,465.1,96.8,42.5\n"
+                        + "INV-02,ENECO Chennai,Normal,448.9,463.8,96.7,43.1\n"
+                        + "INV-03,ENECO Chennai,Warning,420.5,462.1,91.0,48.2\n"
+                        + "INV-04,ENECO Chennai,Normal,451.0,466.0,96.7,41.9\n"
+                        + "INV-05,ENECO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
                       const encodedUri = encodeURI(csvContent);
                       const link = document.createElement("a");
                       link.setAttribute("href", encodedUri);

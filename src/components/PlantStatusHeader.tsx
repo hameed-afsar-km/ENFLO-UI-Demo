@@ -53,7 +53,7 @@ export function PlantStatusHeader() {
     <div className="flex flex-col md:flex-row md:items-end justify-between w-full mb-6 relative z-40">
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
-          <h1 className="text-3xl font-bold tracking-tight">ENFLO SOLAR</h1>
+          <h1 className="text-3xl font-bold tracking-tight">ENECO SOLAR</h1>
         </div>
         <div className="flex items-center flex-wrap gap-4 text-sm font-medium text-secondary-text">
           <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-full border border-border shadow-sm">

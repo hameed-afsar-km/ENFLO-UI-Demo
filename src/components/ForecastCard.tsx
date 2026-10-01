@@ -34,7 +34,7 @@ export function ForecastCard() {
           
           <div>
             <div className="text-xs text-secondary-text font-bold mb-1 flex items-center gap-1.5 uppercase">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-200"></span> Tomorrow Load
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-200"></span> Tomorrow Load
             </div>
             <div className="text-3xl font-bold text-primary-text tracking-tight">
               {factoryDemandMwh} <span className="text-sm font-medium text-secondary-text">± {demandUncertainty} MWh</span>

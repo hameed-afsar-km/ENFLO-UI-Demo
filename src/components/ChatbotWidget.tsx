@@ -6,7 +6,7 @@ import { MessageSquare, X, Send, Bot } from 'lucide-react';
 export function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'system', text: 'Hello! I am ENFLO Assistant. How can I help you analyze your solar data today?' }
+    { role: 'system', text: 'Hello! I am ENECO Assistant. How can I help you analyze your solar data today?' }
   ]);
   const [inputValue, setInputValue] = useState('');
 
@@ -46,7 +46,7 @@ export function ChatbotWidget() {
         <div className="bg-accent-dark text-white p-4 flex justify-between items-center">
           <div className="flex items-center gap-2 font-bold">
             <Bot size={20} />
-            ENFLO Assistant
+            ENECO Assistant
           </div>
           <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-1 rounded-md transition-colors">
             <X size={18} />

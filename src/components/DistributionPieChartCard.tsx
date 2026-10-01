@@ -7,7 +7,7 @@ import { HelpCircle, PieChart as PieChartIcon } from 'lucide-react';
 const data = [
   { name: 'Factory Load', value: 65, color: '#3B82F6' },
   { name: 'Battery Storage', value: 20, color: '#10B981' },
-  { name: 'Grid Export', value: 15, color: '#8B5CF6' },
+  { name: 'Grid Export', value: 15, color: '#F59E0B' },
 ];
 
 export function DistributionPieChartCard() {
