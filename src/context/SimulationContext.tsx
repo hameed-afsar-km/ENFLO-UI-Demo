@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertTriangle, X, ArrowRight } from 'lucide-react';
 export type SimulationEvent = {
   id: string;
@@ -33,6 +34,7 @@ const PLANTS = [
 ];
 
 export function SimulationProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [activeSimulations, setActiveSimulations] = useState<SimulationEvent[]>([]);
   const [toastEvent, setToastEvent] = useState<SimulationEvent | null>(null);
   
@@ -189,7 +191,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       {/* Central Global Error Modal */}
       {isGlobalErrorModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[600px] max-w-[95vw] max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[800px] max-w-[95vw] max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 border border-red-100">
@@ -227,8 +229,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-bold text-gray-900 truncate">{sim.type}</span>
-                          <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase">Critical</span>
+                          <span className="text-sm font-bold text-gray-900">{sim.type}</span>
+                          <span className="shrink-0 px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase">Critical</span>
                         </div>
                         <p className="text-xs text-gray-600 mb-2 leading-snug">{sim.message}</p>
                         <div className="flex items-center gap-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
@@ -241,7 +243,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
                       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
                         <button 
                           onClick={() => {
-                            window.location.href = `/assets?plantName=${encodeURIComponent(sim.plantName)}`;
+                            router.push(`/assets?plantName=${encodeURIComponent(sim.plantName)}`);
                             setIsGlobalErrorModalOpen(false);
                           }}
                           className="px-4 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors text-center"
