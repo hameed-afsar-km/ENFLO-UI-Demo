@@ -12,7 +12,8 @@ const NAV_ITEMS = [
   { name: 'Overview', path: '/' },
   { name: 'Plant Map', path: '/plant-map' },
   { name: 'Analytics', path: '/analytics' },
-  { name: 'Assets', path: '/assets' }
+  { name: 'Assets', path: '/assets' },
+  { name: 'Reports', path: '/reports' }
 ];
 
 const SEARCH_DATA = [

@@ -52,7 +52,10 @@ export function CurrentPowerCard() {
           </div>
           
           <div className="bg-surface/60 backdrop-blur-sm p-4 rounded-xl border border-border/50">
-            <div className="text-secondary-text text-xs font-semibold mb-1 flex items-center gap-1"><PlugZap size={14}/> Grid</div>
+            <div className="text-secondary-text text-xs font-semibold mb-1 flex items-center justify-between">
+              <span className="flex items-center gap-1"><PlugZap size={14}/> Grid</span>
+              <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold border border-blue-100">₹3.5/kWh</span>
+            </div>
             <div className="text-xl lg:text-2xl font-bold text-primary-text">{gridImportMw} <span className="text-xs font-medium text-secondary-text">MW</span></div>
             <div className="text-xs text-secondary-text mt-0.5">Import</div>
           </div>

@@ -7,6 +7,9 @@ import { EventsCard } from "@/components/EventsCard";
 import { ForecastCard } from "@/components/ForecastCard";
 import { YieldBarChartCard } from "@/components/YieldBarChartCard";
 import { DistributionPieChartCard } from "@/components/DistributionPieChartCard";
+import { EmsOptimizerCard } from "@/components/EmsOptimizerCard";
+import { BatteryDetailCard } from "@/components/BatteryDetailCard";
+import { WhatIfSimulationCard } from "@/components/WhatIfSimulationCard";
 
 export default function Dashboard() {
   return (
@@ -25,7 +28,20 @@ export default function Dashboard() {
           <EnergyFlowCard />
         </div>
 
-        {/* Row 2: Charts (Visualizations) */}
+        {/* Row 2: AI Optimization & Economics & Battery Deep Dive */}
+        <div className="md:col-span-12 lg:col-span-6 flex flex-col">
+          <EmsOptimizerCard />
+        </div>
+        
+        <div className="md:col-span-6 lg:col-span-3 flex flex-col">
+          <BatteryDetailCard />
+        </div>
+        
+        <div className="md:col-span-6 lg:col-span-3 flex flex-col">
+          <WhatIfSimulationCard />
+        </div>
+
+        {/* Row 3: Charts (Visualizations) */}
         <div className="md:col-span-12 lg:col-span-7 flex flex-col">
           <YieldBarChartCard />
         </div>
