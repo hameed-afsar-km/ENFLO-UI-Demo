@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #F7F8F8;
+  --color-surface: #FFFFFF;
+  --color-primary-text: #111827;
+  --color-secondary-text: #6B7280;
+  --color-border: #E5E7EB;
+  --color-accent: #3B82F6;
+  --color-accent-dark: #2563EB;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+  
+  --font-sans: "Inter", "Roboto", "Outfit", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-primary-text antialiased min-h-screen font-sans;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-surface/80 backdrop-blur-md border border-border rounded-2xl shadow-sm;
+  }
+  
+  .solid-card {
+    @apply bg-surface border border-border rounded-2xl shadow-sm transition-shadow duration-300 hover:shadow-md relative;
+  }
+  
+  .glass-nav {
+    @apply bg-surface/70 backdrop-blur-lg border border-border rounded-full shadow-sm;
+  }
+  
+  /* Tooltip styles */
+  .tooltip-trigger {
+    @apply relative flex items-center justify-center text-secondary-text hover:text-accent-dark transition-colors cursor-help;
+  }
+  
+  .tooltip-trigger .tooltip-content {
+    @apply absolute bottom-full right-0 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 invisible transition-all duration-200 z-50 pointer-events-none shadow-lg transform translate-y-2 text-left z-[100];
+  }
+  
+  .tooltip-trigger:hover .tooltip-content {
+    @apply opacity-100 visible translate-y-0;
+  }
+  
+  /* Button improvements */
+  .btn-action {
+    @apply w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-semibold text-primary-text hover:bg-accent/10 hover:border-accent hover:text-accent-dark transition-all duration-200 active:scale-[0.98];
+  }
+  
+  .status-dot {
+    @apply w-2.5 h-2.5 rounded-full inline-block;
+  }
+  .status-dot-healthy {
+    @apply bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)];
+  }
+  .status-dot-warning {
+    @apply bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)];
+  }
+  .status-dot-critical {
+    @apply bg-danger shadow-[0_0_8px_rgba(239,68,68,0.5)];
+  }
+}
