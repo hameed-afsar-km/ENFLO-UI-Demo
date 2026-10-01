@@ -66,3 +66,24 @@
     @apply bg-danger shadow-[0_0_8px_rgba(239,68,68,0.5)];
   }
 }
+
+@layer utilities {
+  .animate-shake-periodic {
+    animation: shake-periodic 3s cubic-bezier(.36,.07,.19,.97) infinite;
+    transform-origin: center;
+  }
+}
+
+@keyframes shake-periodic {
+  0%, 80% { transform: translate3d(0, 0, 0); }
+  82% { transform: translate3d(-3px, 0, 0) rotate(-5deg); }
+  84% { transform: translate3d(3px, 0, 0) rotate(5deg); }
+  86% { transform: translate3d(-3px, 0, 0) rotate(-5deg); }
+  88% { transform: translate3d(3px, 0, 0) rotate(5deg); }
+  90% { transform: translate3d(-3px, 0, 0) rotate(-5deg); }
+  92% { transform: translate3d(3px, 0, 0) rotate(5deg); }
+  94% { transform: translate3d(-3px, 0, 0) rotate(-5deg); }
+  96% { transform: translate3d(3px, 0, 0) rotate(5deg); }
+  98% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}

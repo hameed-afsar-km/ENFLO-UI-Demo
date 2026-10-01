@@ -1,38 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { PlantStatusHeader } from "@/components/PlantStatusHeader";
 import { mockData } from "@/data/mock";
-import { MapPin, ChevronDown, Search } from "lucide-react";
+import { MapPin, ChevronDown, Search, Activity, X } from "lucide-react";
+import { useSimulation } from "@/context/SimulationContext";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 // Mocking Plants
 const PLANTS = [
   {
     id: 'PL-01',
-    name: 'ENFLO MAIN',
-    panels: mockData.inverters.slice(0, 4),
+    name: 'ENFLO Chennai',
+    panels: ['INV-01', 'INV-02', 'INV-03', 'INV-04'].map((id, i) => ({ ...mockData.inverters[i], id })),
   },
   {
     id: 'PL-02',
-    name: 'XYZ',
-    panels: mockData.inverters.slice(4, 8),
+    name: 'ENFLO Coimbatore',
+    panels: ['INV-05', 'INV-06', 'INV-07'].map((id, i) => ({ ...mockData.inverters[i + 4], id })),
+  },
+  {
+    id: 'PL-03',
+    name: 'ENFLO Madurai',
+    panels: ['INV-08', 'INV-09'].map((id, i) => ({ ...mockData.inverters[i % mockData.inverters.length], id })),
   }
 ];
 
-export default function AssetsPage() {
+function AssetsPageContent() {
+  const searchParams = useSearchParams();
+  const queryPlantName = searchParams?.get('plantName');
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlantId, setSelectedPlantId] = useState<string>('PL-01');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [healthModalAsset, setHealthModalAsset] = useState<string | null>(null);
+
+  const { activeSimulations } = useSimulation();
+
+  useEffect(() => {
+    if (queryPlantName) {
+      const plant = PLANTS.find(p => p.name === queryPlantName);
+      if (plant) setSelectedPlantId(plant.id);
+    }
+  }, [queryPlantName]);
 
   const selectedPlant = PLANTS.find(p => p.id === selectedPlantId) || PLANTS[0];
 
   const displayPanels = selectedPlant.panels.filter(p => 
     p.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
     p.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).map(p => {
+    const isError = activeSimulations.some(sim => sim.plantName === selectedPlant.name && sim.panelId === p.id);
+    return isError ? { ...p, status: 'Critical', acKw: 0, dcKw: 0, eff: 0 } : p;
+  });
+
+  // Mock health data
+  const healthData = Array.from({ length: 30 }).map((_, i) => ({
+    day: `Day ${i + 1}`,
+    health: 80 + Math.random() * 20 - (Math.random() > 0.9 ? 30 : 0) // Occasional drops
+  }));
 
   return (
-    <div className="flex flex-col gap-6 w-full pb-20">
+    <div className="flex flex-col gap-6 w-full pb-20 relative">
       <PlantStatusHeader />
       
       <div className="solid-card p-0 flex flex-col overflow-hidden">
@@ -97,33 +127,46 @@ export default function AssetsPage() {
                 <th className="px-6 py-4">DC Power</th>
                 <th className="px-6 py-4">Efficiency</th>
                 <th className="px-6 py-4">Temp</th>
+                <th className="px-6 py-4">Health History</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50 text-sm bg-white">
               {displayPanels.map((inv) => (
-                <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-bold text-primary-text">{inv.id}</td>
+                <tr key={inv.id} className={`transition-colors ${inv.status === 'Critical' ? 'bg-red-50/50 hover:bg-red-50' : 'hover:bg-gray-50'}`}>
+                  <td className="px-6 py-4 font-bold text-primary-text flex items-center gap-2">
+                    {inv.id}
+                    {inv.status === 'Critical' && <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-danger"></span></span>}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                       inv.status === 'Normal' ? 'bg-success/10 text-success' : 
-                      inv.status === 'Warning' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'
+                      inv.status === 'Warning' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger border border-danger/20'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${
                         inv.status === 'Normal' ? 'bg-success' : 
-                        inv.status === 'Warning' ? 'bg-warning' : 'bg-danger'
+                        inv.status === 'Warning' ? 'bg-warning' : 'bg-danger animate-pulse'
                       }`}></span>
                       {inv.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-primary-text">{inv.acKw} kW</td>
-                  <td className="px-6 py-4 text-secondary-text">{inv.dcKw} kW</td>
-                  <td className="px-6 py-4 text-primary-text">{inv.eff}%</td>
+                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{inv.acKw} kW</td>
+                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-secondary-text'}`}>{inv.dcKw} kW</td>
+                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{inv.eff}%</td>
                   <td className="px-6 py-4 text-secondary-text">{inv.temp}°C</td>
+                  <td className="px-6 py-4">
+                    <button 
+                      onClick={() => setHealthModalAsset(inv.id)}
+                      className="p-2 rounded-lg bg-gray-100 hover:bg-blue-50 text-gray-500 hover:text-blue-600 transition-colors tooltip-trigger"
+                    >
+                      <Activity size={16} />
+                      <div className="tooltip-content !-translate-x-1/2 !left-1/2 !right-auto">View Health</div>
+                    </button>
+                  </td>
                 </tr>
               ))}
               {displayPanels.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-secondary-text font-medium bg-gray-50">
+                  <td colSpan={7} className="px-6 py-10 text-center text-secondary-text font-medium bg-gray-50">
                     No assets found matching "{searchQuery}"
                   </td>
                 </tr>
@@ -132,6 +175,77 @@ export default function AssetsPage() {
           </table>
         </div>
       </div>
+
+      {/* Health History Modal */}
+      {healthModalAsset && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[700px] max-w-[95vw] animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 border border-blue-100">
+                  <Activity size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Health History: {healthModalAsset}</h2>
+                  <p className="text-sm text-gray-500">30-day performance and health index</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setHealthModalAsset(null)}
+                className="text-gray-400 hover:text-gray-700 transition-colors bg-gray-50 hover:bg-gray-100 rounded-full p-2 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="px-6 py-4 grid grid-cols-4 gap-4 border-b border-gray-100 bg-gray-50/50">
+              <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
+                <div className="text-xl font-black text-gray-900">12</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Total Errors</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
+                <div className="text-xl font-black text-orange-500">4</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Low Production</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
+                <div className="text-xl font-black text-blue-500">2</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Maintenance</div>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
+                <div className="text-xl font-black text-green-500">99.8%</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Uptime</div>
+              </div>
+            </div>
+            
+            <div className="p-6 h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={healthData}>
+                  <defs>
+                    <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                  <XAxis dataKey="day" hide />
+                  <YAxis domain={[0, 100]} tick={{ fill: '#6B7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
+                  />
+                  <Area type="monotone" dataKey="health" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorHealth)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function AssetsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-gray-500">Loading assets...</div>}>
+      <AssetsPageContent />
+    </Suspense>
   );
 }
