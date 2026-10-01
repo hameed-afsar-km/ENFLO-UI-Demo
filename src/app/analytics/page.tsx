@@ -55,31 +55,47 @@ const failureData = [
   { name: 'Other', value: 10 },
 ];
 
+import { Search } from 'lucide-react';
+
 export default function AnalyticsPage() {
   const tabs = ['Performance', 'Availability', 'Soiling', 'Degradation', 'Capacity', 'Maintenance', 'Failures'];
   const [activeTab, setActiveTab] = useState('Performance');
+  const [searchQuery, setSearchQuery] = useState('');
   
   return (
     <div className="flex flex-col gap-6 w-full pb-20">
       <PlantStatusHeader />
       
       <div className="solid-card p-6 min-h-[600px] flex flex-col">
-        <div className="flex flex-col mb-8 border-b border-border pb-4">
-          <h2 className="text-lg font-bold text-primary-text mb-4">Deep Analytics</h2>
-          <div className="flex flex-wrap gap-2">
-            {tabs.map((tab) => (
-              <button 
-                key={tab} 
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab 
-                  ? 'bg-accent/10 text-accent-dark border border-accent/20 shadow-sm' 
-                  : 'bg-surface text-secondary-text border border-transparent hover:bg-gray-50 hover:text-primary-text'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-border pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-primary-text mb-4 sm:mb-2">Deep Analytics</h2>
+            <div className="flex flex-wrap gap-2">
+              {tabs.map((tab) => (
+                <button 
+                  key={tab} 
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === tab 
+                    ? 'bg-accent/10 text-accent-dark border border-accent/20 shadow-sm' 
+                    : 'bg-surface text-secondary-text border border-transparent hover:bg-gray-50 hover:text-primary-text'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="relative group w-full sm:w-auto">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text group-focus-within:text-accent-dark transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search metrics..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-4 py-2 w-full sm:w-64 rounded-lg bg-surface/80 border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent transition-all placeholder-secondary-text/70"
+            />
           </div>
         </div>
         

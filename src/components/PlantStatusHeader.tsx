@@ -10,20 +10,21 @@ export function PlantStatusHeader() {
   const { status, invertersOnline, totalInverters, date, time } = mockData.plantStatus;
   const [isOpen, setIsOpen] = useState(false);
   const [activeMetric, setActiveMetric] = useState<'power' | 'efficiency' | 'voltage' | 'errors'>('power');
-  const [currentDate, setCurrentDate] = useState(date);
+  const [selectedDate, setSelectedDate] = useState("2026-10-01");
+  const [selectedRange, setSelectedRange] = useState("Last 7 Days");
   const [viewMode, setViewMode] = useState<'daily' | 'hourly'>('daily');
   const [timeFormat, setTimeFormat] = useState<'24h' | '0-12h' | '12-24h'>('24h');
 
   // Mock historical data for daily view
-  const historicalData = [
-    { timeLabel: 'Mon', power: 14.2, efficiency: 81.2, voltage: 642, errors: 2 },
-    { timeLabel: 'Tue', power: 15.6, efficiency: 83.5, voltage: 645, errors: 1 },
-    { timeLabel: 'Wed', power: 11.4, efficiency: 79.8, voltage: 638, errors: 4 },
-    { timeLabel: 'Thu', power: 18.2, efficiency: 85.1, voltage: 651, errors: 0 },
-    { timeLabel: 'Fri', power: 16.5, efficiency: 84.0, voltage: 648, errors: 1 },
-    { timeLabel: 'Sat', power: 13.9, efficiency: 82.3, voltage: 640, errors: 2 },
-    { timeLabel: 'Sun', power: 17.8, efficiency: 84.6, voltage: 650, errors: 0 },
-  ];
+  const historicalData = React.useMemo(() => [
+    { timeLabel: 'Mon', power: 14.2 + Math.random(), efficiency: 81.2 + Math.random(), voltage: 642, errors: 2 },
+    { timeLabel: 'Tue', power: 15.6 + Math.random(), efficiency: 83.5 + Math.random(), voltage: 645, errors: 1 },
+    { timeLabel: 'Wed', power: 11.4 + Math.random(), efficiency: 79.8 + Math.random(), voltage: 638, errors: 4 },
+    { timeLabel: 'Thu', power: 18.2 + Math.random(), efficiency: 85.1 + Math.random(), voltage: 651, errors: 0 },
+    { timeLabel: 'Fri', power: 16.5 + Math.random(), efficiency: 84.0 + Math.random(), voltage: 648, errors: 1 },
+    { timeLabel: 'Sat', power: 13.9 + Math.random(), efficiency: 82.3 + Math.random(), voltage: 640, errors: 2 },
+    { timeLabel: 'Sun', power: 17.8 + Math.random(), efficiency: 84.6 + Math.random(), voltage: 650, errors: 0 },
+  ], [selectedRange]);
 
   // Generate hourly data
   const generateHourlyData = () => {
@@ -37,7 +38,7 @@ export function PlantStatusHeader() {
     }));
   };
 
-  const hourlyData = React.useMemo(() => generateHourlyData(), []);
+  const hourlyData = React.useMemo(() => generateHourlyData(), [selectedDate]);
 
   const getDisplayData = () => {
     if (viewMode === 'daily') return historicalData;
@@ -65,9 +66,6 @@ export function PlantStatusHeader() {
           <Link href="/plant-map" className="inline-flex w-max items-center gap-1.5 px-3 py-1.5 bg-accent/10 text-accent-dark hover:bg-accent/20 rounded-full text-sm font-bold border border-accent/20 transition-colors">
             <Map size={16} /> Switch Plant
           </Link>
-          <button className="inline-flex w-max items-center gap-1.5 px-3 py-1.5 bg-surface text-secondary-text hover:text-primary-text hover:bg-gray-50 rounded-full text-sm font-bold border border-border transition-colors">
-            <Settings2 size={16} /> Plant Settings
-          </button>
         </div>
       </div>
       
@@ -78,7 +76,7 @@ export function PlantStatusHeader() {
             className={`flex flex-col text-right hover:bg-surface p-2 rounded-xl border transition-colors group cursor-pointer ${isOpen ? 'bg-surface border-border shadow-sm' : 'border-transparent hover:border-border'}`}
           >
             <div className="text-lg font-bold text-primary-text flex items-center gap-2 justify-end">
-              {currentDate}
+              {viewMode === 'hourly' ? selectedDate : selectedRange}
               <ChevronDown size={18} className={`text-secondary-text group-hover:text-accent-dark transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
             <div className="text-sm text-secondary-text font-medium text-accent-dark flex items-center justify-end gap-1">
@@ -163,25 +161,24 @@ export function PlantStatusHeader() {
 
               <div className="flex justify-between items-center border-t border-border/50 pt-4">
                 <div className="text-xs text-secondary-text">Data Selection:</div>
-                <select 
-                  className="text-xs border border-border rounded-md px-2 py-1 bg-gray-50 font-medium text-primary-text outline-none focus:border-accent cursor-pointer"
-                  onChange={(e) => setCurrentDate(e.target.value)}
-                  value={currentDate}
-                >
-                  {viewMode === 'hourly' ? (
-                    <>
-                      <option value="01 OCT 2026">01 OCT 2026 (Today)</option>
-                      <option value="30 SEP 2026">30 SEP 2026 (Yesterday)</option>
-                      <option value="29 SEP 2026">29 SEP 2026</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="Last 7 Days">Last 7 Days</option>
-                      <option value="Last 14 Days">Last 14 Days</option>
-                      <option value="Last 30 Days">Last 30 Days</option>
-                    </>
-                  )}
-                </select>
+                {viewMode === 'hourly' ? (
+                  <input 
+                    type="date"
+                    className="text-xs border border-border rounded-md px-2 py-1 bg-gray-50 font-medium text-primary-text outline-none focus:border-accent cursor-pointer"
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    value={selectedDate}
+                  />
+                ) : (
+                  <select 
+                    className="text-xs border border-border rounded-md px-2 py-1 bg-gray-50 font-medium text-primary-text outline-none focus:border-accent cursor-pointer"
+                    onChange={(e) => setSelectedRange(e.target.value)}
+                    value={selectedRange}
+                  >
+                    <option value="Last 7 Days">Last 7 Days</option>
+                    <option value="Last 14 Days">Last 14 Days</option>
+                    <option value="Last 30 Days">Last 30 Days</option>
+                  </select>
+                )}
               </div>
             </div>
           )}

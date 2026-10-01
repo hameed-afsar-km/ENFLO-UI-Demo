@@ -13,42 +13,42 @@ export default function Dashboard() {
     <div className="flex flex-col gap-6 w-full pb-20">
       <PlantStatusHeader />
       
-      {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+      {/* Asymmetrical Bento Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
-        {/* Row 1: Left - Current Power (Large), Right - Energy Flow */}
-        <div className="lg:col-span-2 row-span-1">
+        {/* Row 1: Left - Power Overview (Wide), Right - Energy Flow (Narrower) */}
+        <div className="md:col-span-7 lg:col-span-7 flex flex-col">
           <CurrentPowerCard />
         </div>
         
-        <div className="lg:col-span-1 row-span-1">
+        <div className="md:col-span-5 lg:col-span-5 flex flex-col">
           <EnergyFlowCard />
         </div>
-        
-        {/* Row 2: Performance, Weather, Events */}
-        <div className="lg:col-span-1">
-          <PerformanceCard />
-        </div>
-        
-        <div className="lg:col-span-1">
-          <WeatherCard />
-        </div>
-        
-        <div className="lg:col-span-1 h-80 lg:h-auto">
-          <EventsCard />
-        </div>
-        
-        {/* Row 3: Yield Bar Chart, Distribution Pie Chart */}
-        <div className="lg:col-span-2">
+
+        {/* Row 2: Charts (Visualizations) */}
+        <div className="md:col-span-12 lg:col-span-7 flex flex-col">
           <YieldBarChartCard />
         </div>
         
-        <div className="lg:col-span-1">
+        <div className="md:col-span-12 lg:col-span-5 flex flex-col">
           <DistributionPieChartCard />
         </div>
         
-        {/* Row 4: Forecast (Large span) */}
-        <div className="lg:col-span-3">
+        {/* Row 3: Performance, Weather, Events */}
+        <div className="md:col-span-6 lg:col-span-4 flex flex-col">
+          <PerformanceCard />
+        </div>
+        
+        <div className="md:col-span-6 lg:col-span-3 flex flex-col">
+          <WeatherCard />
+        </div>
+        
+        <div className="md:col-span-12 lg:col-span-5 flex flex-col max-h-[400px]">
+          <EventsCard />
+        </div>
+        
+        {/* Row 4: Forecast (Full width) */}
+        <div className="md:col-span-12 flex flex-col">
           <ForecastCard />
         </div>
 
