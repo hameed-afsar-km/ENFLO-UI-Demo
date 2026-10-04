@@ -11,14 +11,17 @@ const MapComponent = dynamic(() => import("@/components/MapComponent"), {
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-2xl border-4 border-white shadow-inner font-bold text-gray-400">Loading Map...</div>
 });
 
-// Mocking Plants containing Panels (using panels as panels)
+const CHENNAI_PANELS = ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'];
+const COIMBATORE_PANELS = ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'];
+const MADURAI_PANELS = ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'];
+
 const PLANTS = [
   {
     id: 'PL-01',
     name: 'ENECO Chennai',
     location: 'Chennai, TN',
     status: 'Normal',
-    panels: mockData.panels.slice(0, 4),
+    panels: mockData.panels.filter(p => CHENNAI_PANELS.includes(p.id)),
     lat: 13.0827, lng: 80.2707
   },
   {
@@ -26,7 +29,7 @@ const PLANTS = [
     name: 'ENECO Coimbatore',
     location: 'Coimbatore, TN',
     status: 'Warning',
-    panels: mockData.panels.slice(4, 7),
+    panels: mockData.panels.filter(p => COIMBATORE_PANELS.includes(p.id)),
     lat: 11.0168, lng: 76.9558
   },
   {
@@ -34,7 +37,7 @@ const PLANTS = [
     name: 'ENECO Madurai',
     location: 'Madurai, TN',
     status: 'Normal',
-    panels: mockData.panels.slice(7, 8),
+    panels: mockData.panels.filter(p => MADURAI_PANELS.includes(p.id)),
     lat: 9.9252, lng: 78.1198
   }
 ];

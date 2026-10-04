@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/TopNav";
@@ -28,7 +29,9 @@ export default function RootLayout({
           <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12 relative z-10">
             {children}
           </main>
-          <ChatbotWidget />
+          <Suspense fallback={null}>
+            <ChatbotWidget />
+          </Suspense>
         </SimulationProvider>
       </body>
     </html>

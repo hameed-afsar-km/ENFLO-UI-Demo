@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, X, ArrowRight } from 'lucide-react';
+import { AlertTriangle, X, ArrowRight, Info, Zap } from 'lucide-react';
+import { mockData } from '@/data/mock';
+
 export type SimulationEvent = {
   id: string;
   type: string;
@@ -23,14 +25,15 @@ interface SimulationContextType {
   notifications: any[];
   markNotificationRead: (id: number) => void;
   markAllNotificationsRead: () => void;
+  emsState: any;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
 
 const PLANTS = [
-  { name: 'ENECO Chennai', location: 'Chennai, TN', panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04'] },
-  { name: 'ENECO Coimbatore', location: 'Coimbatore, TN', panels: ['PNL-05', 'PNL-06', 'PNL-07'] },
-  { name: 'ENECO Madurai', location: 'Madurai, TN', panels: ['PNL-08', 'PNL-09'] },
+  { name: 'ENECO Chennai', location: 'Chennai, TN', panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'] },
+  { name: 'ENECO Coimbatore', location: 'Coimbatore, TN', panels: ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'] },
+  { name: 'ENECO Madurai', location: 'Madurai, TN', panels: ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'] },
 ];
 
 export function SimulationProvider({ children }: { children: React.ReactNode }) {
@@ -38,10 +41,17 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   const [activeSimulations, setActiveSimulations] = useState<SimulationEvent[]>([]);
   const [toastEvent, setToastEvent] = useState<SimulationEvent | null>(null);
   
-  // Base notifications mock
-  const [notifications, setNotifications] = useState<any[]>([
-    { id: 101, title: "System check complete", message: "All regular diagnostics passed.", type: "info", time: "08:00", read: true }
-  ]);
+  // Dynamic EMS State based on mockData
+  const [emsState, setEmsState] = useState({
+    currentPower: { ...mockData.currentPower },
+    battery: { ...mockData.battery },
+    aiDecision: { ...mockData.aiDecision },
+    emsRecommendations: [...mockData.emsRecommendations],
+    tariffs: { ...mockData.tariffs },
+    costProjection: { ...mockData.costProjection }
+  });
+
+  const [notifications, setNotifications] = useState<any[]>(mockData.notifications);
 
   const triggerSimulation = (type: string) => {
     const randomPlant = PLANTS[Math.floor(Math.random() * PLANTS.length)];
@@ -50,16 +60,113 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     
     let message = "";
-    if (type === 'Temperature Overload') message = `Critical temperature threshold exceeded on ${randomPanel}. Derating output.`;
-    else if (type === 'Communication Failure') message = `Lost connection to ${randomPanel} telemetry module.`;
-    else if (type === 'Voltage Drop') message = `Unexpected DC voltage drop detected on ${randomPanel}.`;
+    let isCritical = false;
+    let newEmsState = { ...emsState };
+
+    if (type === 'Temperature Overload') {
+      message = `Critical temperature threshold exceeded on ${randomPanel}. Derating output.`;
+      isCritical = true;
+    } else if (type === 'Communication Failure') {
+      message = `Lost connection to ${randomPanel} telemetry module.`;
+      isCritical = true;
+    } else if (type === 'Voltage Drop') {
+      message = `Unexpected DC voltage drop detected on ${randomPanel}.`;
+      isCritical = true;
+    } else if (type === 'Solar Surplus') {
+      message = `Solar generation spiked. Redirecting surplus to battery storage.`;
+      newEmsState.currentPower.solarGenerationMw = 2.80;
+      newEmsState.currentPower.factoryLoadMw = 1.25;
+      newEmsState.currentPower.surplusMw = 1.55;
+      newEmsState.currentPower.gridExportMw = 0.0;
+      newEmsState.currentPower.batteryChargeMw = 1.55;
+      newEmsState.currentPower.toBatteryMw = 1.55;
+      newEmsState.battery.state = "Charging";
+      newEmsState.aiDecision = {
+        action: "Charging Battery from Surplus",
+        reason: "Solar generation is 1.55 MW above current demand. Storing surplus before evening peak.",
+        expectedImpact: "Grid import avoided later. Estimated evening savings: ₹4,650."
+      };
+    } else if (type === 'Solar Deficit') {
+      message = `Solar generation dropped. Discharging battery to cover factory load.`;
+      newEmsState.currentPower.solarGenerationMw = 0.40;
+      newEmsState.currentPower.factoryLoadMw = 2.20;
+      newEmsState.currentPower.surplusMw = 0;
+      newEmsState.currentPower.directToFactoryMw = 0.40;
+      newEmsState.currentPower.batteryChargeMw = 0;
+      newEmsState.currentPower.toBatteryMw = 0;
+      newEmsState.currentPower.batteryDischargeMw = 1.80;
+      newEmsState.currentPower.gridImportMw = 0.0;
+      newEmsState.battery.state = "Discharging";
+      newEmsState.aiDecision = {
+        action: "Discharging Battery",
+        reason: "Solar deficit of 1.80 MW detected. Grid tariff is ₹4.80/kWh, discharging battery is more economical.",
+        expectedImpact: "Grid import reduced by 1.80 MW. Savings: ₹8,640/hr."
+      };
+    } else if (type === 'Peak Tariff') {
+      message = `Peak tariff period started. Maximizing battery discharge.`;
+      newEmsState.tariffs.current = 9.40;
+      newEmsState.currentPower.solarGenerationMw = 0.10;
+      newEmsState.currentPower.factoryLoadMw = 2.00;
+      newEmsState.currentPower.batteryDischargeMw = 1.90;
+      newEmsState.currentPower.gridImportMw = 0.0;
+      newEmsState.battery.state = "Discharging";
+      newEmsState.aiDecision = {
+        action: "Peak Shifting via Battery",
+        reason: "Grid tariff is currently HIGH (₹9.40/kWh). Discharging battery to minimize grid import cost.",
+        expectedImpact: "Grid import avoided. Peak savings: ₹17,860/hr."
+      };
+    } else if (type === 'Upcoming Peak') {
+      message = `High tariff approaching in 30 mins. Preserving battery reserve.`;
+      newEmsState.tariffs.current = 4.80;
+      newEmsState.battery.state = "Reserve";
+      newEmsState.currentPower.batteryDischargeMw = 0;
+      newEmsState.currentPower.batteryChargeMw = 0;
+      newEmsState.currentPower.solarGenerationMw = 0.8;
+      newEmsState.currentPower.factoryLoadMw = 2.0;
+      newEmsState.currentPower.gridImportMw = 1.2;
+      newEmsState.aiDecision = {
+        action: "Preserve Battery Reserve",
+        reason: "Peak tariff (₹9.40/kWh) begins in 30 mins. Holding current SoC to use during peak hours instead of now.",
+        expectedImpact: "Cost shifted to cheaper grid period. Optimization value: ₹5,520."
+      };
+    } else if (type === 'Battery Full') {
+      message = `Battery reached max capacity. Exporting surplus to grid.`;
+      newEmsState.battery.soc = 100;
+      newEmsState.battery.state = "Full";
+      newEmsState.currentPower.batteryChargeMw = 0;
+      newEmsState.currentPower.toBatteryMw = 0;
+      newEmsState.currentPower.solarGenerationMw = 2.5;
+      newEmsState.currentPower.factoryLoadMw = 1.0;
+      newEmsState.currentPower.surplusMw = 1.5;
+      newEmsState.currentPower.gridExportMw = 1.5;
+      newEmsState.aiDecision = {
+        action: "Exporting to Grid",
+        reason: "Battery is at 100% capacity. Redirecting 1.50 MW solar surplus to the grid for revenue.",
+        expectedImpact: "Grid export revenue generated: ₹7,200/hr."
+      };
+    } else if (type === 'Battery Reserve') {
+      message = `Battery hit minimum reserve limit. Switching to grid.`;
+      newEmsState.battery.soc = 25;
+      newEmsState.battery.state = "Reserve";
+      newEmsState.currentPower.batteryDischargeMw = 0;
+      newEmsState.currentPower.solarGenerationMw = 0;
+      newEmsState.currentPower.factoryLoadMw = 1.8;
+      newEmsState.currentPower.gridImportMw = 1.8;
+      newEmsState.aiDecision = {
+        action: "Switched to Grid Import",
+        reason: "Battery reached minimum reserve limit (25%). Switched to grid to protect battery health.",
+        expectedImpact: "Battery degraded avoided. Safety margin maintained."
+      };
+    }
+
+    setEmsState(newEmsState);
 
     const newSim: SimulationEvent = {
       id: Math.random().toString(36).substring(7),
       type,
-      plantName: randomPlant.name,
-      panelId: randomPanel,
-      location: randomPlant.location,
+      plantName: isCritical ? randomPlant.name : 'System EMS',
+      panelId: isCritical ? randomPanel : 'EMS Engine',
+      location: isCritical ? randomPlant.location : 'Global',
       time: timeStr,
       message,
       resolved: false
@@ -68,13 +175,12 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setActiveSimulations(prev => [newSim, ...prev]);
     setToastEvent(newSim);
 
-    // Add to notifications
     setNotifications(prev => [
       {
         id: Math.random(),
-        title: `${type}: ${randomPlant.name}`,
+        title: `${type}: ${isCritical ? randomPlant.name : 'EMS Action'}`,
         message: newSim.message,
-        type: "critical",
+        type: isCritical ? "critical" : "info",
         time: timeStr,
         read: false
       },
@@ -87,7 +193,18 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     if (toastEvent?.id === id) {
       setToastEvent(null);
     }
-  };
+    // Revert to initial state if all EMS simulations are cleared
+    if (activeSimulations.length <= 1) {
+       setEmsState({
+         currentPower: { ...mockData.currentPower },
+         battery: { ...mockData.battery },
+         aiDecision: { ...mockData.aiDecision },
+         emsRecommendations: [...mockData.emsRecommendations],
+         tariffs: { ...mockData.tariffs },
+         costProjection: { ...mockData.costProjection }
+       });
+    }
+  }
 
   const dismissToast = () => {
     setToastEvent(null);
@@ -112,30 +229,36 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       dismissToast,
       notifications,
       markNotificationRead,
-      markAllNotificationsRead
+      markAllNotificationsRead,
+      emsState
     }}>
       {children}
       
       {/* Toast Modal (New Event) */}
       {toastEvent && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="bg-white/95 backdrop-blur-xl border border-gray-200 shadow-[0_20px_50px_-12px_rgba(239,68,68,0.25)] rounded-2xl p-5 w-[420px] max-w-[90vw] overflow-hidden relative">
-            {/* Glowing top accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-red-400 to-red-600"></div>
+          <div className="bg-white/95 backdrop-blur-xl border border-gray-200 shadow-2xl rounded-2xl p-5 w-[420px] max-w-[90vw] overflow-hidden relative">
+            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'from-red-600 via-red-400 to-red-600' : 'from-blue-600 via-emerald-400 to-blue-600'}`}></div>
             
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-red-50 border border-red-100 flex items-center justify-center relative">
-                   <span className="absolute inset-0 rounded-full animate-ping bg-red-400/20 duration-1000"></span>
-                   <AlertTriangle size={20} className="text-red-500 relative z-10" />
+                <div className={`w-10 h-10 rounded-full ${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'} border flex items-center justify-center relative`}>
+                   {toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? (
+                     <>
+                       <span className="absolute inset-0 rounded-full animate-ping bg-red-400/20 duration-1000"></span>
+                       <AlertTriangle size={20} className="text-red-500 relative z-10" />
+                     </>
+                   ) : (
+                     <Zap size={20} className="text-blue-500 relative z-10" />
+                   )}
                 </div>
                 <div>
                   <h3 className="font-black text-gray-900 text-lg tracking-wide leading-tight">
                     {toastEvent.type}
                   </h3>
-                  <div className="text-red-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                    Critical System Alert
+                  <div className={`${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'text-red-500' : 'text-blue-500'} text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mt-0.5`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'bg-red-500' : 'bg-blue-500'} animate-pulse`}></span>
+                    {toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'Critical System Alert' : 'EMS Optimization Alert'}
                   </div>
                 </div>
               </div>
@@ -148,13 +271,13 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
             
             <div className="grid grid-cols-2 gap-3 mb-5">
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex flex-col justify-center">
-                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Affected Plant</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Affected Area</div>
                 <div className="text-sm font-bold text-gray-900 truncate">{toastEvent.plantName}</div>
               </div>
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex flex-col justify-center">
-                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Asset ID</div>
+                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-1">Asset ID / Subsystem</div>
                 <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-1.5">
-                  <span className="text-red-500">•</span> {toastEvent.panelId}
+                  <span className={`${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'text-red-500' : 'text-blue-500'}`}>•</span> {toastEvent.panelId}
                 </div>
               </div>
             </div>
@@ -163,7 +286,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
               <button onClick={dismissToast} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all border border-transparent cursor-pointer">
                 Dismiss
               </button>
-              <button className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 shadow-sm transition-all border border-red-100 flex items-center justify-center gap-2 group cursor-pointer" onClick={() => { dismissToast(); setIsGlobalErrorModalOpen(true); }}>
+              <button className={`flex-1 py-2.5 rounded-xl ${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'bg-red-50 text-red-600 hover:bg-red-100 border-red-100' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100'} font-bold text-sm shadow-sm transition-all border flex items-center justify-center gap-2 group cursor-pointer`} onClick={() => { dismissToast(); setIsGlobalErrorModalOpen(true); }}>
                 Review Details <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -171,24 +294,21 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
         </div>
       )}
 
-      {/* Floating Action Button for Active Errors */}
+      {/* Floating Action Button for Active Events */}
       {activeSimulations.length > 0 && !isGlobalErrorModalOpen && (
         <button 
           onClick={() => setIsGlobalErrorModalOpen(true)}
           className="fixed bottom-24 right-6 z-[90] w-14 h-14 bg-danger rounded-full shadow-[0_0_25px_rgba(239,68,68,0.5)] flex items-center justify-center animate-shake-periodic border-2 border-white hover:scale-110 transition-transform cursor-pointer group"
-          aria-label="Active Errors"
+          aria-label="Active Events"
         >
           <AlertTriangle size={28} className="text-white" />
           <span className="absolute -top-2 -right-2 w-6 h-6 bg-white text-danger font-black text-xs rounded-full flex items-center justify-center border-2 border-danger shadow-md">
             {activeSimulations.length}
           </span>
-          <div className="absolute right-full mr-4 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-            View Active Issues
-          </div>
         </button>
       )}
 
-      {/* Central Global Error Modal */}
+      {/* Central Global Modal */}
       {isGlobalErrorModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[800px] max-w-[95vw] max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-200">
@@ -198,8 +318,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
                   <AlertTriangle size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Active System Alerts</h2>
-                  <p className="text-sm text-gray-500">Critical issues requiring immediate action</p>
+                  <h2 className="text-xl font-bold text-gray-900">Active System Events</h2>
+                  <p className="text-sm text-gray-500">Critical issues and active EMS simulations</p>
                 </div>
               </div>
               <button 
@@ -211,56 +331,32 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
             </div>
             
             <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
-              {activeSimulations.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 text-green-500 mb-4 border border-green-100">
-                    <span className="text-3xl">✓</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">All Clear</h3>
-                  <p className="text-gray-500 text-sm">No active issues detected across all plants.</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-4">
-                  {activeSimulations.map(sim => (
-                    <div key={sim.id} className="bg-white border border-red-100 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center shadow-sm">
-                      <div className="w-12 h-12 shrink-0 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-500">
-                        <AlertTriangle size={24} />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-bold text-gray-900">{sim.type}</span>
-                          <span className="shrink-0 px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase">Critical</span>
-                        </div>
-                        <p className="text-xs text-gray-600 mb-2 leading-snug">{sim.message}</p>
-                        <div className="flex items-center gap-3 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
-                          <span className="flex items-center gap-1"><span className="text-gray-400">Plant:</span> <span className="text-gray-700">{sim.plantName}</span></span>
-                          <span className="flex items-center gap-1"><span className="text-gray-400">Asset:</span> <span className="text-gray-700">{sim.panelId}</span></span>
-                          <span className="flex items-center gap-1"><span className="text-gray-400">Time:</span> <span className="text-gray-700">{sim.time}</span></span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
-                        <button 
-                          onClick={() => {
-                            router.push(`/assets?plantName=${encodeURIComponent(sim.plantName)}`);
-                            setIsGlobalErrorModalOpen(false);
-                          }}
-                          className="px-4 py-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors text-center"
-                        >
-                          View Assets
-                        </button>
-                        <button 
-                          onClick={() => fixSimulation(sim.id)}
-                          className="px-6 py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-colors shadow-sm shadow-green-500/20"
-                        >
-                          Fix Issue
-                        </button>
-                      </div>
+              <div className="flex flex-col gap-4">
+                {activeSimulations.map(sim => (
+                  <div key={sim.id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center shadow-sm">
+                    <div className={`w-12 h-12 shrink-0 rounded-xl ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-red-50 border-red-100 text-red-500' : 'bg-blue-50 border-blue-100 text-blue-500'} border flex items-center justify-center`}>
+                      {sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? <AlertTriangle size={24} /> : <Zap size={24} />}
                     </div>
-                  ))}
-                </div>
-              )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm font-bold text-gray-900">{sim.type}</span>
+                        <span className={`shrink-0 px-2 py-0.5 rounded-full ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100'} border text-[10px] font-bold uppercase`}>Active</span>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-2 leading-snug">{sim.message}</p>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
+                      <button 
+                        onClick={() => fixSimulation(sim.id)}
+                        className={`px-6 py-2.5 rounded-lg ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-green-500 hover:bg-green-600 shadow-green-500/20' : 'bg-gray-800 hover:bg-gray-900 shadow-gray-900/20'} text-white font-bold text-sm transition-colors shadow-sm`}
+                      >
+                        {sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'Fix Issue' : 'End Simulation'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             
             <div className="p-4 border-t border-gray-100 bg-white flex justify-end rounded-b-2xl">

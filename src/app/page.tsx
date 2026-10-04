@@ -10,25 +10,31 @@ import { DistributionPieChartCard } from "@/components/DistributionPieChartCard"
 import { EmsOptimizerCard } from "@/components/EmsOptimizerCard";
 import { BatteryDetailCard } from "@/components/BatteryDetailCard";
 import { WhatIfSimulationCard } from "@/components/WhatIfSimulationCard";
+import { TariffTimelineCard } from "@/components/TariffTimelineCard";
+import { CostAnalysisCard } from "@/components/CostAnalysisCard";
 
 export default function Dashboard() {
   return (
     <div className="flex flex-col gap-6 w-full pb-20">
       <PlantStatusHeader />
       
-      {/* Asymmetrical Bento Grid Layout */}
+      {/* Asymmetrical Bento Grid Layout for EMS */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         
-        {/* Row 1: Left - Power Overview (Wide), Right - Energy Flow (Narrower) */}
-        <div className="md:col-span-7 lg:col-span-7 flex flex-col">
-          <CurrentPowerCard />
-        </div>
-        
-        <div className="md:col-span-5 lg:col-span-5 flex flex-col">
+        {/* ROW 1: Flow and KPIs */}
+        <div className="md:col-span-12 lg:col-span-7 flex flex-col">
           <EnergyFlowCard />
         </div>
+        
+        <div className="md:col-span-12 lg:col-span-5 flex flex-col">
+          <CurrentPowerCard />
+        </div>
 
-        {/* Row 2: AI Optimization & Economics & Battery Deep Dive */}
+        {/* ROW 2: AI Optimization, Battery, Tariffs, Costs */}
+        <div className="md:col-span-12 flex flex-col">
+           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Intelligent Optimization</h3>
+        </div>
+
         <div className="md:col-span-12 lg:col-span-6 flex flex-col">
           <EmsOptimizerCard />
         </div>
@@ -37,11 +43,20 @@ export default function Dashboard() {
           <BatteryDetailCard />
         </div>
         
-        <div className="md:col-span-6 lg:col-span-3 flex flex-col">
-          <WhatIfSimulationCard />
+        <div className="md:col-span-6 lg:col-span-3 flex flex-col gap-6">
+          <div className="flex-1">
+             <TariffTimelineCard />
+          </div>
+          <div className="flex-1">
+             <CostAnalysisCard />
+          </div>
         </div>
 
-        {/* Row 3: Charts (Visualizations) */}
+        {/* ROW 3: Charts and Analytics */}
+        <div className="md:col-span-12 flex flex-col">
+           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Analytics & Metrics</h3>
+        </div>
+
         <div className="md:col-span-12 lg:col-span-7 flex flex-col">
           <YieldBarChartCard />
         </div>
@@ -50,7 +65,7 @@ export default function Dashboard() {
           <DistributionPieChartCard />
         </div>
         
-        {/* Row 3: Performance, Weather, Events */}
+        {/* ROW 4: Operations & Environment */}
         <div className="md:col-span-6 lg:col-span-4 flex flex-col">
           <PerformanceCard />
         </div>
@@ -63,7 +78,7 @@ export default function Dashboard() {
           <EventsCard />
         </div>
         
-        {/* Row 4: Forecast (Full width) */}
+        {/* ROW 5: Forecast */}
         <div className="md:col-span-12 flex flex-col">
           <ForecastCard />
         </div>

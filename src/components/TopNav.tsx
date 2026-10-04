@@ -266,25 +266,43 @@ export function TopNav() {
                 </div>
                 
                 <div className="p-4 border-b border-border">
-                  <div className="text-xs font-bold text-secondary-text uppercase tracking-wider mb-3">Trigger Simulations</div>
-                  <div className="grid grid-cols-1 gap-2">
+                  <div className="text-xs font-bold text-secondary-text uppercase tracking-wider mb-3">Trigger EMS Scenarios</div>
+                  <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
                     <button 
-                      onClick={() => triggerSimulation('Temperature Overload')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-sm font-medium rounded-lg bg-danger/10 text-danger hover:bg-danger hover:text-white transition-colors"
+                      onClick={() => triggerSimulation('Solar Surplus')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
                     >
-                      <Zap size={14} /> Temperature Overload
+                      <Zap size={12} /> Solar Surplus
                     </button>
                     <button 
-                      onClick={() => triggerSimulation('Communication Failure')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-sm font-medium rounded-lg bg-warning/10 text-warning-dark hover:bg-warning hover:text-white transition-colors"
+                      onClick={() => triggerSimulation('Solar Deficit')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors"
                     >
-                      <AlertTriangle size={14} /> Communication Failure
+                      <AlertTriangle size={12} /> Solar Deficit
                     </button>
                     <button 
-                      onClick={() => triggerSimulation('Voltage Drop')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-sm font-medium rounded-lg bg-purple-500/10 text-purple-600 hover:bg-purple-500 hover:text-white transition-colors"
+                      onClick={() => triggerSimulation('Peak Tariff')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-colors"
                     >
-                      <Bug size={14} /> Voltage Drop
+                      <Bug size={12} /> Peak Tariff
+                    </button>
+                    <button 
+                      onClick={() => triggerSimulation('Upcoming Peak')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-500 hover:text-white transition-colors"
+                    >
+                      <AlertTriangle size={12} /> Upcoming Peak
+                    </button>
+                    <button 
+                      onClick={() => triggerSimulation('Battery Full')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-colors"
+                    >
+                      <Zap size={12} /> Battery Full
+                    </button>
+                    <button 
+                      onClick={() => triggerSimulation('Battery Reserve')}
+                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-800 hover:text-white transition-colors"
+                    >
+                      <AlertTriangle size={12} /> Battery Reserve
                     </button>
                   </div>
                 </div>
