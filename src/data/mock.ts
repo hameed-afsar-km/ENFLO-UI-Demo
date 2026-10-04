@@ -1,8 +1,8 @@
 export const mockData = {
   plantStatus: {
     status: "Operational",
-    invertersOnline: 8,
-    totalInverters: 8,
+    panelsOnline: 8,
+    totalPanels: 8,
     date: "01 OCT 2026",
     time: "14:30",
   },
@@ -61,14 +61,14 @@ export const mockData = {
   events: [
     {
       id: 1,
-      asset: "INV-04",
+      asset: "PNL-04",
       message: "Communication restored",
       type: "info",
       time: "14:12",
     },
     {
       id: 2,
-      asset: "INV-02",
+      asset: "PNL-02",
       message: "Temperature warning cleared",
       type: "info",
       time: "13:45",
@@ -84,7 +84,7 @@ export const mockData = {
   notifications: [
     {
       id: 1,
-      title: "Inverter INV-08 temperature warning",
+      title: "Panel PNL-08 temperature warning",
       message: "Internal temperature reached 48.5°C. Output is derated until it falls below 45°C.",
       type: "warning",
       time: "14:22",
@@ -100,7 +100,7 @@ export const mockData = {
     },
     {
       id: 3,
-      title: "Inverter INV-04 back online",
+      title: "Panel PNL-04 back online",
       message: "Communication restored after a 4 minute outage. No generation was lost during the event.",
       type: "info",
       time: "12:18",
@@ -137,15 +137,15 @@ export const mockData = {
     optimizedCostTomorrow: 15870,
     estimatedSaving: 2550,
   },
-  inverters: [
-    { id: "INV-01", status: "Normal", acKw: 225, dcKw: 236, eff: 95.3, temp: 42.1, energyMwh: 1.18, pr: 82.1 },
-    { id: "INV-02", status: "Normal", acKw: 228, dcKw: 240, eff: 95.0, temp: 43.5, energyMwh: 1.19, pr: 82.4 },
-    { id: "INV-03", status: "Normal", acKw: 226, dcKw: 237, eff: 95.4, temp: 41.8, energyMwh: 1.20, pr: 82.5 },
-    { id: "INV-04", status: "Normal", acKw: 168, dcKw: 176, eff: 95.4, temp: 43.2, energyMwh: 1.21, pr: 84.1 },
-    { id: "INV-05", status: "Normal", acKw: 220, dcKw: 231, eff: 95.2, temp: 42.6, energyMwh: 1.16, pr: 81.9 },
-    { id: "INV-06", status: "Normal", acKw: 230, dcKw: 241, eff: 95.4, temp: 41.9, energyMwh: 1.22, pr: 83.0 },
-    { id: "INV-07", status: "Normal", acKw: 224, dcKw: 235, eff: 95.3, temp: 42.0, energyMwh: 1.17, pr: 82.2 },
-    { id: "INV-08", status: "Warning", acKw: 200, dcKw: 212, eff: 94.3, temp: 48.5, energyMwh: 1.07, pr: 79.5 },
+  panels: [
+    { id: "PNL-01", status: "Normal", acKw: 225, dcKw: 236, eff: 95.3, temp: 42.1, energyMwh: 1.18, pr: 82.1 },
+    { id: "PNL-02", status: "Normal", acKw: 228, dcKw: 240, eff: 95.0, temp: 43.5, energyMwh: 1.19, pr: 82.4 },
+    { id: "PNL-03", status: "Normal", acKw: 226, dcKw: 237, eff: 95.4, temp: 41.8, energyMwh: 1.20, pr: 82.5 },
+    { id: "PNL-04", status: "Normal", acKw: 168, dcKw: 176, eff: 95.4, temp: 43.2, energyMwh: 1.21, pr: 84.1 },
+    { id: "PNL-05", status: "Normal", acKw: 220, dcKw: 231, eff: 95.2, temp: 42.6, energyMwh: 1.16, pr: 81.9 },
+    { id: "PNL-06", status: "Normal", acKw: 230, dcKw: 241, eff: 95.4, temp: 41.9, energyMwh: 1.22, pr: 83.0 },
+    { id: "PNL-07", status: "Normal", acKw: 224, dcKw: 235, eff: 95.3, temp: 42.0, energyMwh: 1.17, pr: 82.2 },
+    { id: "PNL-08", status: "Warning", acKw: 200, dcKw: 212, eff: 94.3, temp: 48.5, energyMwh: 1.07, pr: 79.5 },
   ],
   hourlyForecast: [
     { hour: '00:00', pv: 0, load: 0.8 },

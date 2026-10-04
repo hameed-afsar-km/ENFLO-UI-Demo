@@ -7,7 +7,7 @@ import { Settings2, ChevronDown, CalendarDays, X, Activity, Zap, ActivitySquare,
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export function PlantStatusHeader() {
-  const { status, invertersOnline, totalInverters, date, time } = mockData.plantStatus;
+  const { status, panelsOnline, totalPanels, date, time } = mockData.plantStatus;
   const [isOpen, setIsOpen] = useState(false);
   const [activeMetric, setActiveMetric] = useState<'power' | 'efficiency' | 'voltage' | 'errors'>('power');
   const [selectedDate, setSelectedDate] = useState("2026-10-01");
@@ -61,7 +61,7 @@ export function PlantStatusHeader() {
             <span className="text-primary-text">Plant status: {status}</span>
           </div>
           <div className="bg-surface px-3 py-1.5 rounded-full border border-border shadow-sm">
-            {invertersOnline}/{totalInverters} Inverters online
+            {panelsOnline}/{totalPanels} Panels online
           </div>
           <Link href="/plant-map" className="inline-flex w-max items-center gap-1.5 px-3 py-1.5 bg-accent/10 text-accent-dark hover:bg-accent/20 rounded-full text-sm font-bold border border-accent/20 transition-colors">
             <Map size={16} /> Switch Plant

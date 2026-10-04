@@ -11,14 +11,14 @@ const MapComponent = dynamic(() => import("@/components/MapComponent"), {
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-2xl border-4 border-white shadow-inner font-bold text-gray-400">Loading Map...</div>
 });
 
-// Mocking Plants containing Panels (using inverters as panels)
+// Mocking Plants containing Panels (using panels as panels)
 const PLANTS = [
   {
     id: 'PL-01',
     name: 'ENECO Chennai',
     location: 'Chennai, TN',
     status: 'Normal',
-    panels: mockData.inverters.slice(0, 4),
+    panels: mockData.panels.slice(0, 4),
     lat: 13.0827, lng: 80.2707
   },
   {
@@ -26,7 +26,7 @@ const PLANTS = [
     name: 'ENECO Coimbatore',
     location: 'Coimbatore, TN',
     status: 'Warning',
-    panels: mockData.inverters.slice(4, 7),
+    panels: mockData.panels.slice(4, 7),
     lat: 11.0168, lng: 76.9558
   },
   {
@@ -34,7 +34,7 @@ const PLANTS = [
     name: 'ENECO Madurai',
     location: 'Madurai, TN',
     status: 'Normal',
-    panels: mockData.inverters.slice(7, 8),
+    panels: mockData.panels.slice(7, 8),
     lat: 9.9252, lng: 78.1198
   }
 ];

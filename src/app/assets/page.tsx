@@ -13,17 +13,17 @@ const PLANTS = [
   {
     id: 'PL-01',
     name: 'ENECO Chennai',
-    panels: ['INV-01', 'INV-02', 'INV-03', 'INV-04'].map((id, i) => ({ ...mockData.inverters[i], id })),
+    panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04'].map((id, i) => ({ ...mockData.panels[i], id })),
   },
   {
     id: 'PL-02',
     name: 'ENECO Coimbatore',
-    panels: ['INV-05', 'INV-06', 'INV-07'].map((id, i) => ({ ...mockData.inverters[i + 4], id })),
+    panels: ['PNL-05', 'PNL-06', 'PNL-07'].map((id, i) => ({ ...mockData.panels[i + 4], id })),
   },
   {
     id: 'PL-03',
     name: 'ENECO Madurai',
-    panels: ['INV-08', 'INV-09'].map((id, i) => ({ ...mockData.inverters[i % mockData.inverters.length], id })),
+    panels: ['PNL-08', 'PNL-09'].map((id, i) => ({ ...mockData.panels[i % mockData.panels.length], id })),
   }
 ];
 
@@ -131,31 +131,31 @@ function AssetsPageContent() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border/50 text-sm bg-white">
-              {displayPanels.map((inv) => (
-                <tr key={inv.id} className={`transition-colors ${inv.status === 'Critical' ? 'bg-red-50/50 hover:bg-red-50' : 'hover:bg-gray-50'}`}>
+              {displayPanels.map((panel) => (
+                <tr key={panel.id} className={`transition-colors ${panel.status === 'Critical' ? 'bg-red-50/50 hover:bg-red-50' : 'hover:bg-gray-50'}`}>
                   <td className="px-6 py-4 font-bold text-primary-text flex items-center gap-2">
-                    {inv.id}
-                    {inv.status === 'Critical' && <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-danger"></span></span>}
+                    {panel.id}
+                    {panel.status === 'Critical' && <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-danger"></span></span>}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                      inv.status === 'Normal' ? 'bg-success/10 text-success' : 
-                      inv.status === 'Warning' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger border border-danger/20'
+                      panel.status === 'Normal' ? 'bg-success/10 text-success' : 
+                      panel.status === 'Warning' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger border border-danger/20'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${
-                        inv.status === 'Normal' ? 'bg-success' : 
-                        inv.status === 'Warning' ? 'bg-warning' : 'bg-danger animate-pulse'
+                        panel.status === 'Normal' ? 'bg-success' : 
+                        panel.status === 'Warning' ? 'bg-warning' : 'bg-danger animate-pulse'
                       }`}></span>
-                      {inv.status}
+                      {panel.status}
                     </span>
                   </td>
-                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{inv.acKw} kW</td>
-                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-secondary-text'}`}>{inv.dcKw} kW</td>
-                  <td className={`px-6 py-4 ${inv.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{inv.eff}%</td>
-                  <td className="px-6 py-4 text-secondary-text">{inv.temp}°C</td>
+                  <td className={`px-6 py-4 ${panel.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{panel.acKw} kW</td>
+                  <td className={`px-6 py-4 ${panel.status === 'Critical' ? 'text-red-500 font-bold' : 'text-secondary-text'}`}>{panel.dcKw} kW</td>
+                  <td className={`px-6 py-4 ${panel.status === 'Critical' ? 'text-red-500 font-bold' : 'text-primary-text'}`}>{panel.eff}%</td>
+                  <td className="px-6 py-4 text-secondary-text">{panel.temp}°C</td>
                   <td className="px-6 py-4">
                     <button 
-                      onClick={() => setHealthModalAsset(inv.id)}
+                      onClick={() => setHealthModalAsset(panel.id)}
                       className="p-2 rounded-lg bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-600 transition-colors tooltip-trigger"
                     >
                       <Activity size={16} />

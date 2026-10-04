@@ -15,10 +15,10 @@ const performanceData = [
 ];
 
 const availabilityData = [
-  { week: 'W1', inverter: 99.1, grid: 100 },
-  { week: 'W2', inverter: 98.5, grid: 99.8 },
-  { week: 'W3', inverter: 99.9, grid: 100 },
-  { week: 'W4', inverter: 97.2, grid: 100 },
+  { week: 'W1', panel: 99.1, grid: 100 },
+  { week: 'W2', panel: 98.5, grid: 99.8 },
+  { week: 'W3', panel: 99.9, grid: 100 },
+  { week: 'W4', panel: 97.2, grid: 100 },
 ];
 
 const soilingData = [
@@ -49,7 +49,7 @@ const maintenanceData = [
 ];
 
 const failureData = [
-  { name: 'Inverter', value: 45 },
+  { name: 'Panel', value: 45 },
   { name: 'Tracker', value: 30 },
   { name: 'Comms', value: 15 },
   { name: 'Other', value: 10 },
@@ -135,7 +135,7 @@ export default function AnalyticsPage() {
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h3 className="text-lg font-bold text-primary-text">Plant Availability</h3>
-                  <p className="text-sm text-secondary-text">Inverter and Grid availability breakdown.</p>
+                  <p className="text-sm text-secondary-text">Panel and Grid availability breakdown.</p>
                 </div>
               </div>
               <div className="h-80 w-full">
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
                     <YAxis domain={[95, 100]} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
                     <Tooltip contentStyle={{ borderRadius: '8px' }} cursor={{fill: '#f3f4f6'}} />
                     <Legend verticalAlign="top" height={36}/>
-                    <Bar dataKey="inverter" name="Inverter Availability (%)" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />
+                    <Bar dataKey="panel" name="Panel Availability (%)" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={40} />
                     <Bar dataKey="grid" name="Grid Availability (%)" fill="#10B981" radius={[4, 4, 0, 0]} barSize={40} />
                   </BarChart>
                 </ResponsiveContainer>

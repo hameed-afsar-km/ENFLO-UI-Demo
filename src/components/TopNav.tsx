@@ -22,7 +22,7 @@ const SEARCH_DATA = [
   { id: '3', title: 'ABC', type: 'Location', path: '/plant-map' },
   { id: '4', title: 'California, USA', type: 'Location', path: '/plant-map' },
   { id: '5', title: 'Plant Settings', type: 'Settings', path: '/' },
-  { id: '6', title: 'Inverter Array B', type: 'Asset', path: '/assets' },
+  { id: '6', title: 'Panel Array B', type: 'Asset', path: '/assets' },
   { id: '7', title: 'System Diagnostics', type: 'Settings', path: '/analytics' },
 ];
 
@@ -319,11 +319,11 @@ export function TopNav() {
                     onClick={() => {
                       const csvContent = "data:text/csv;charset=utf-8," 
                         + "Asset ID,Plant Name,Status,AC Power (kW),DC Power (kW),Efficiency (%),Temperature (°C)\n"
-                        + "INV-01,ENECO Chennai,Normal,450.2,465.1,96.8,42.5\n"
-                        + "INV-02,ENECO Chennai,Normal,448.9,463.8,96.7,43.1\n"
-                        + "INV-03,ENECO Chennai,Warning,420.5,462.1,91.0,48.2\n"
-                        + "INV-04,ENECO Chennai,Normal,451.0,466.0,96.7,41.9\n"
-                        + "INV-05,ENECO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
+                        + "PNL-01,ENECO Chennai,Normal,450.2,465.1,96.8,42.5\n"
+                        + "PNL-02,ENECO Chennai,Normal,448.9,463.8,96.7,43.1\n"
+                        + "PNL-03,ENECO Chennai,Warning,420.5,462.1,91.0,48.2\n"
+                        + "PNL-04,ENECO Chennai,Normal,451.0,466.0,96.7,41.9\n"
+                        + "PNL-05,ENECO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
                       const encodedUri = encodeURI(csvContent);
                       const link = document.createElement("a");
                       link.setAttribute("href", encodedUri);

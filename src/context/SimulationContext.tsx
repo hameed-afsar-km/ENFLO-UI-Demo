@@ -28,9 +28,9 @@ interface SimulationContextType {
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
 
 const PLANTS = [
-  { name: 'ENECO Chennai', location: 'Chennai, TN', panels: ['INV-01', 'INV-02', 'INV-03', 'INV-04'] },
-  { name: 'ENECO Coimbatore', location: 'Coimbatore, TN', panels: ['INV-05', 'INV-06', 'INV-07'] },
-  { name: 'ENECO Madurai', location: 'Madurai, TN', panels: ['INV-08', 'INV-09'] },
+  { name: 'ENECO Chennai', location: 'Chennai, TN', panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04'] },
+  { name: 'ENECO Coimbatore', location: 'Coimbatore, TN', panels: ['PNL-05', 'PNL-06', 'PNL-07'] },
+  { name: 'ENECO Madurai', location: 'Madurai, TN', panels: ['PNL-08', 'PNL-09'] },
 ];
 
 export function SimulationProvider({ children }: { children: React.ReactNode }) {
