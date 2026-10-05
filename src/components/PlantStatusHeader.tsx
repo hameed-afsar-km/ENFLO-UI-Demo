@@ -85,7 +85,7 @@ export function PlantStatusHeader() {
           </button>
           
           {isOpen && (
-            <div className="absolute right-0 top-full mt-2 w-[450px] bg-surface border border-border rounded-2xl shadow-xl p-5 z-50 animate-in fade-in slide-in-from-top-2">
+            <div className="absolute left-0 md:left-auto md:right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-[450px] bg-surface border border-border rounded-2xl shadow-xl p-5 z-50 animate-in fade-in slide-in-from-top-2">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-primary-text">Historical Analysis</h3>
                 <button onClick={() => setIsOpen(false)} className="text-secondary-text hover:text-primary-text">
@@ -93,7 +93,7 @@ export function PlantStatusHeader() {
                 </button>
               </div>
               
-              <div className="grid grid-cols-4 gap-2 mb-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
                 <button onClick={() => setActiveMetric('power')} className={`p-2 rounded-lg text-xs font-semibold flex flex-col items-center gap-1 border ${activeMetric === 'power' ? 'bg-accent/10 border-accent/30 text-accent-dark' : 'border-border/50 text-secondary-text hover:bg-gray-50'}`}>
                   <Zap size={14} /> Power
                 </button>

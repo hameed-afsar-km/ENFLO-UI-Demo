@@ -31,7 +31,7 @@ export default function ReportsPage() {
       <PlantStatusHeader />
       
       <div className="solid-card p-8 min-h-[600px] flex flex-col">
-        <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 border-b border-gray-100 pb-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <FileText size={24} className="text-emerald-500" />
@@ -40,7 +40,7 @@ export default function ReportsPage() {
             <p className="text-sm text-gray-500 mt-1">Generate, view, and download comprehensive plant reports.</p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors">
               <Filter size={16} /> Filter
             </button>
@@ -57,8 +57,8 @@ export default function ReportsPage() {
           </div>
         </div>
         
-        <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-          <table className="w-full text-left">
+        <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-x-auto custom-scrollbar shadow-sm">
+          <table className="w-full text-left min-w-[700px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="p-4 w-16">

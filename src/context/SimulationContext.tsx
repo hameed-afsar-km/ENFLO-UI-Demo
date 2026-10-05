@@ -220,18 +220,20 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
 
   const [isGlobalErrorModalOpen, setIsGlobalErrorModalOpen] = useState(false);
 
+  const contextValue = React.useMemo(() => ({
+    activeSimulations, 
+    triggerSimulation, 
+    fixSimulation, 
+    toastEvent, 
+    dismissToast,
+    notifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    emsState
+  }), [activeSimulations, toastEvent, notifications, emsState]);
+
   return (
-    <SimulationContext.Provider value={{ 
-      activeSimulations, 
-      triggerSimulation, 
-      fixSimulation, 
-      toastEvent, 
-      dismissToast,
-      notifications,
-      markNotificationRead,
-      markAllNotificationsRead,
-      emsState
-    }}>
+    <SimulationContext.Provider value={contextValue}>
       {children}
       
       {/* Toast Modal (New Event) */}

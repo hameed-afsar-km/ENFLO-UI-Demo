@@ -48,7 +48,7 @@ export function CurrentPowerCard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mt-auto pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-auto pt-2">
           <div className="bg-white/80 p-4 rounded-xl border border-gray-100 shadow-sm">
             <div className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><Factory size={12}/> Factory Load</div>
             <div className="text-xl lg:text-2xl font-bold text-gray-900">{factoryLoadMw.toFixed(2)} <span className="text-xs font-medium text-gray-500">MW</span></div>

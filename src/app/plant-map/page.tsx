@@ -63,8 +63,8 @@ export default function PlantMapPage() {
       <PlantStatusHeader />
       
       <div className="solid-card p-6 min-h-[600px] flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 w-full lg:w-auto">
             {selectedPlant && (
               <button 
                 onClick={() => setSelectedPlantId(null)} 
@@ -78,19 +78,19 @@ export default function PlantMapPage() {
             </h2>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="relative group">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+            <div className="relative group w-full sm:w-auto">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
               <input 
                 type="text" 
                 placeholder={selectedPlant ? "Search panels..." : "Search plants or location..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 rounded-lg bg-surface/80 border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent w-64 transition-all placeholder-secondary-text/70"
+                className="pl-9 pr-4 py-2 rounded-lg bg-surface/80 border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent w-full sm:w-64 transition-all placeholder-secondary-text/70"
               />
             </div>
             
-            <div className="flex gap-4 text-sm font-medium">
+            <div className="flex flex-wrap gap-4 text-sm font-medium mt-2 sm:mt-0">
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-success"></span> Normal</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-warning"></span> Warning</span>
               <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-danger"></span> Fault</span>
@@ -98,7 +98,7 @@ export default function PlantMapPage() {
           </div>
         </div>
         
-        <div className="flex-1 bg-gray-50 rounded-xl border border-border/50 relative overflow-hidden flex items-center justify-center p-8">
+        <div className={`flex-1 bg-gray-50 rounded-xl border border-border/50 relative overflow-hidden flex items-center justify-center ${!selectedPlant ? 'p-0' : 'p-4 sm:p-8'}`}>
           
           {!selectedPlant ? (
             <div className="relative w-full h-[500px]">

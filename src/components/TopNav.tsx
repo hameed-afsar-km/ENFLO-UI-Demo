@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { mockData } from '@/data/mock';
-import { Bell, User, Search, CheckCheck, Info, CircleAlert, TriangleAlert, Zap, AlertTriangle, Bug, Wrench } from 'lucide-react';
+import { Bell, User, Search, CheckCheck, Info, CircleAlert, TriangleAlert, Zap, AlertTriangle, Bug, Wrench, Menu, X } from 'lucide-react';
 import { useSimulation } from '@/context/SimulationContext';
 
 const NAV_ITEMS = [
@@ -30,10 +30,12 @@ export function TopNav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const bellRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -53,12 +55,16 @@ export function TopNav() {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setIsProfileOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setIsMobileMenuOpen(false);
+      }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
         setIsSearchOpen(false);
         setIsProfileOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -87,16 +93,50 @@ export function TopNav() {
   return (
     <div className="fixed top-6 left-0 right-0 z-50 flex justify-center w-full px-4 pointer-events-none">
       <nav className="glass-nav px-2 py-2 flex items-center gap-2 pointer-events-auto max-w-6xl w-full justify-between">
-        <div className="flex items-center gap-3 pl-4">
+        <div className="flex items-center gap-2 md:gap-3 pl-2 md:pl-4">
+          <div className="md:hidden relative" ref={mobileMenuRef}>
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                setIsOpen(false);
+                setIsProfileOpen(false);
+              }}
+              className="p-1.5 text-secondary-text hover:bg-surface rounded-md transition-colors"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            {isMobileMenuOpen && (
+              <div className="absolute top-full left-0 mt-3 w-56 bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-50 flex flex-col py-2">
+                {NAV_ITEMS.map((item) => {
+                  const isActive = pathname === item.path;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.path}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={cn(
+                        "px-4 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-accent/10 text-accent-dark font-bold"
+                          : "text-secondary-text hover:text-primary-text hover:bg-gray-50"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold shadow-sm">
             E
           </div>
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-lg tracking-tight">ENECO Solar</span>
+            <span className="font-semibold text-base md:text-lg tracking-tight whitespace-nowrap">ENECO Solar</span>
           </div>
         </div>
         
-        <div className="flex items-center gap-1 bg-background/50 rounded-full p-1 border border-border/50">
+        <div className="hidden md:flex items-center gap-1 bg-background/50 rounded-full p-1 border border-border/50">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.path;
             return (
@@ -179,7 +219,7 @@ export function TopNav() {
             </button>
 
             {isOpen && (
-              <div className="absolute right-0 top-full mt-3 w-[360px] max-w-[calc(100vw-2rem)] bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
+              <div className="fixed left-1/2 -translate-x-1/2 top-[85px] sm:absolute sm:left-auto sm:translate-x-0 sm:right-0 sm:top-full sm:mt-3 w-[calc(100vw-2rem)] sm:w-[360px] bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
                 <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border">
                   <div className="flex items-center gap-2 min-w-0">
                     <h3 className="text-sm font-bold text-primary-text">Notifications</h3>
@@ -259,7 +299,7 @@ export function TopNav() {
             </button>
             
             {isProfileOpen && (
-              <div className="absolute right-0 top-full mt-3 w-80 bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
+              <div className="fixed left-1/2 -translate-x-1/2 top-[85px] sm:absolute sm:left-auto sm:translate-x-0 sm:right-0 sm:top-full sm:mt-3 w-[calc(100vw-2rem)] sm:w-[360px] bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
                 <div className="p-4 border-b border-border bg-gray-50">
                   <div className="font-bold text-primary-text text-sm mb-1">Developer Mode</div>
                   <div className="text-xs text-secondary-text">Test real-time event triggers</div>

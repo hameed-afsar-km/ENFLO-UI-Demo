@@ -117,8 +117,8 @@ function AssetsPageContent() {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto custom-scrollbar pb-2">
+          <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr className="bg-surface text-xs uppercase tracking-wider text-secondary-text font-bold border-b border-border">
                 <th className="px-6 py-4">Asset ID</th>
@@ -197,7 +197,7 @@ function AssetsPageContent() {
                 <X size={20} />
               </button>
             </div>
-            <div className="px-6 py-4 grid grid-cols-4 gap-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100 bg-gray-50/50">
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
                 <div className="text-xl font-black text-gray-900">12</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Total Errors</div>
