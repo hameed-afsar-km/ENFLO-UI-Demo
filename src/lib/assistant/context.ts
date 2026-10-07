@@ -201,7 +201,7 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
   const insights = deriveInsights();
   const {
     plantStatus, currentPower, energyToday, performance, solarConditions,
-    battery, forecastTomorrow, tariffs, costProjection, emsRecommendations, aiDecision,
+    battery, forecastTomorrow, tariffs, costProjection, emsRecommendations, aiDecision, predictedEvents,
   } = mockData;
 
   const active = runtime.activeSimulations ?? [];
@@ -283,10 +283,11 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
     {
       key: "events",
       keywords: [
-        "alert", "alarm", "event", "notification", "notif", "unread", "log", "today's event", "message", "warning", "error", "issue", "what should i do", "fix", "resolve", "overload", "trip", "outage", "interrupt",
+        "alert", "alarm", "event", "notification", "notif", "unread", "log", "today's event", "message", "warning", "error", "issue", "what should i do", "fix", "resolve", "overload", "trip", "outage", "interrupt", "predict", "future", "anticipate", "happen"
       ],
       build: () => [
         `EVENTS LOG: ${mockData.events.map((e) => `${e.time} ${e.asset} ${e.message}`).join("; ")}.`,
+        `PREDICTED EVENTS: ${predictedEvents.map((e) => `${e.expectedTime} on ${e.asset}: ${e.message} (${e.probability}% probability)`).join(" | ")}. Use these to answer questions about future events or predictions.`,
         active.length > 0
           ? `ACTIVE UNRESOLVED ALERTS (treat as top priority): ${active
               .map(

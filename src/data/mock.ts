@@ -124,6 +124,29 @@ export const mockData = {
       time: "09:00",
     }
   ],
+  predictedEvents: [
+    {
+      id: 1,
+      asset: "PNL-08",
+      message: "Likely thermal runaway or inverter trip if temp exceeds 50°C",
+      probability: 85,
+      expectedTime: "Tomorrow 14:00"
+    },
+    {
+      id: 2,
+      asset: "Grid Connection",
+      message: "High risk of grid instability due to incoming storm",
+      probability: 60,
+      expectedTime: "Tomorrow 22:00"
+    },
+    {
+      id: 3,
+      asset: "Plant",
+      message: "Soiling losses expected to exceed 5% without cleaning",
+      probability: 95,
+      expectedTime: "Next Week"
+    }
+  ],
   notifications: [
     {
       id: 1,

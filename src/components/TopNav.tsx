@@ -40,7 +40,7 @@ export function TopNav() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const { notifications, markNotificationRead, markAllNotificationsRead, activeSimulations, triggerSimulation, fixSimulation } = useSimulation();
+  const { notifications, markNotificationRead, markAllNotificationsRead, activeSimulations, triggerSimulation, fixSimulation, timeString, simulateTimeTransition, emsState, setFactoryLoad, setBatteryCapacity } = useSimulation();
   
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -301,8 +301,63 @@ export function TopNav() {
             {isProfileOpen && (
               <div className="fixed left-1/2 -translate-x-1/2 top-[85px] sm:absolute sm:left-auto sm:translate-x-0 sm:right-0 sm:top-full sm:mt-3 w-[calc(100vw-2rem)] sm:w-[360px] bg-surface border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
                 <div className="p-4 border-b border-border bg-gray-50">
-                  <div className="font-bold text-primary-text text-sm mb-1">Developer Mode</div>
-                  <div className="text-xs text-secondary-text">Test real-time event triggers</div>
+                  <div className="flex justify-between items-center mb-1">
+                     <div className="font-bold text-primary-text text-sm">Time Simulation</div>
+                     <div className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{timeString}</div>
+                  </div>
+                  <div className="text-xs text-secondary-text mb-3">Scrub time to see smooth transitions</div>
+                  
+                  <div className="mb-4 px-1">
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="23" 
+                      step="1"
+                      value={parseInt(timeString.split(':')[0]) || 0}
+                      onChange={(e) => {
+                         const h = parseInt(e.target.value);
+                         simulateTimeTransition(`${h.toString().padStart(2, '0')}:00`);
+                      }}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div className="flex justify-between text-[10px] text-gray-400 mt-1 font-bold">
+                       <span>00:00</span>
+                       <span>12:00</span>
+                       <span>23:00</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4 px-1">
+                    <div className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+                      <span>Factory Load</span>
+                      <span>{emsState.currentPower.factoryLoadMw.toFixed(2)} MW</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="5" 
+                      step="0.1"
+                      value={emsState.currentPower.factoryLoadMw}
+                      onChange={(e) => setFactoryLoad(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                    />
+                  </div>
+
+                  <div className="mb-2 px-1">
+                    <div className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+                      <span>Battery Capacity</span>
+                      <span>{emsState.battery.ratedCapacityMwh.toFixed(2)} MWh</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="5" 
+                      max="30" 
+                      step="1"
+                      value={emsState.battery.ratedCapacityMwh}
+                      onChange={(e) => setBatteryCapacity(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                    />
+                  </div>
                 </div>
                 
                 <div className="p-4 border-b border-border">

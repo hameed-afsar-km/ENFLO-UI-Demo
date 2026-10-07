@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { useSimulation } from '@/context/SimulationContext';
-import { Sun, Factory, BatteryMedium, Zap, HelpCircle, ArrowRight, ArrowDown } from 'lucide-react';
+import { Sun, Factory, BatteryMedium, Zap, HelpCircle, ArrowRight, ArrowDown, BrainCircuit } from 'lucide-react';
 
 export function EnergyFlowCard() {
-  const { emsState } = useSimulation();
+  const { emsState, automationMode } = useSimulation();
+  const isAiActive = automationMode !== 'Manual';
   const { 
     solarGenerationMw, 
     factoryLoadMw,
@@ -23,11 +24,18 @@ export function EnergyFlowCard() {
     <div className="solid-card p-5 h-full flex flex-col group">
       <div className="flex justify-between items-start mb-2">
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Energy Flow</h2>
-        {surplusMw > 0 && (
-          <div className="px-2 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold rounded-lg border border-orange-200">
-            {surplusMw.toFixed(2)} MW SURPLUS
-          </div>
-        )}
+        <div className="flex gap-2">
+          {isAiActive && (
+            <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-200 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span> AI OPTIMIZING
+            </div>
+          )}
+          {surplusMw > 0 && (
+            <div className="px-2 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold rounded-lg border border-orange-200">
+              {surplusMw.toFixed(2)} MW SURPLUS
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="flex-1 flex flex-col items-center justify-between py-4 relative">
@@ -66,9 +74,14 @@ export function EnergyFlowCard() {
             {/* Solar to Battery */}
             {toBatteryMw > 0 && (
               <>
-                <div className="absolute top-[20%] left-1/2 right-[56px] h-[30%] border-t-2 border-r-2 border-orange-400 rounded-tr-xl z-0" />
-                <div className="absolute top-[50%] right-[56px] w-[2px] h-[50%] bg-orange-400 z-0" />
-                <div className="absolute top-[50%] right-[56px] translate-x-[3px] -translate-y-1/2 w-2 h-2 bg-orange-400 rounded-full animate-ping z-10" />
+                <div className={`absolute top-[20%] left-1/2 right-[56px] h-[30%] border-t-2 border-r-2 ${isAiActive ? 'border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'border-orange-400'} rounded-tr-xl z-0 transition-colors duration-500`} />
+                <div className={`absolute top-[50%] right-[56px] w-[2px] h-[50%] ${isAiActive ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'bg-orange-400'} z-0 transition-colors duration-500`} />
+                <div className={`absolute top-[50%] right-[56px] translate-x-[3px] -translate-y-1/2 w-2 h-2 ${isAiActive ? 'bg-blue-500' : 'bg-orange-400'} rounded-full animate-ping z-10 transition-colors duration-500`} />
+                {isAiActive && (
+                   <div className="absolute top-[20%] right-[60px] -translate-y-1/2 bg-blue-50 border border-blue-200 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 whitespace-nowrap shadow-sm">
+                      <BrainCircuit size={10} /> STORING SURPLUS
+                   </div>
+                )}
               </>
             )}
 
@@ -83,9 +96,26 @@ export function EnergyFlowCard() {
             {/* Battery to Factory */}
             {batteryDischargeMw > 0 && (
               <>
-                <div className="absolute top-[70%] right-[56px] w-[2px] h-[30%] border-r-2 border-green-500 border-dashed z-20" />
-                <div className="absolute top-[70%] right-[56px] left-[calc(50%+8px)] h-[30%] border-t-2 border-l-2 border-green-500 border-dashed rounded-tl-xl z-20" />
+                <div className={`absolute top-[70%] right-[56px] w-[2px] h-[30%] border-r-2 ${isAiActive ? 'border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'border-green-500 border-dashed'} z-20 transition-colors duration-500`} />
+                <div className={`absolute top-[70%] right-[56px] left-[calc(50%+8px)] h-[30%] border-t-2 border-l-2 ${isAiActive ? 'border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'border-green-500 border-dashed'} rounded-tl-xl z-20 transition-colors duration-500`} />
+                {isAiActive && (
+                   <div className="absolute top-[70%] right-[60px] -translate-y-1/2 bg-blue-50 border border-blue-200 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 whitespace-nowrap shadow-sm">
+                      <BrainCircuit size={10} /> PEAK SHIFTING
+                   </div>
+                )}
               </>
+            )}
+
+            {/* Grid to Battery (Pre-charging) */}
+            {gridImportMw > 0 && batteryChargeMw > 0 && toBatteryMw === 0 && (
+               <>
+                 <div className="absolute top-[70%] left-[56px] right-[56px] h-[20%] border-b-2 border-blue-500 border-dashed z-0 opacity-50 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                 {isAiActive && (
+                   <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 bg-blue-50 border border-blue-200 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 z-20 whitespace-nowrap shadow-sm">
+                      <BrainCircuit size={10} /> PRE-CHARGING
+                   </div>
+                 )}
+               </>
             )}
          </div>
         

@@ -247,6 +247,8 @@ const IN_SCOPE_TERMS = [
   "forecast",
   "predicted",
   "prediction",
+  "future",
+  "anticipate",
   "tomorrow",
   "weather",
   "cloud",
@@ -636,8 +638,8 @@ export const SUGGESTIONS = [
   "How is the plant performing right now?",
   "Which panel needs attention?",
   "How much battery is available tonight?",
-  "How much are we saving today?",
   "What are the active events?",
+  "Predict future events",
 ];
 
 export function buildSystemPrompt(liveContext: string): string {

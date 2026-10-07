@@ -5,7 +5,7 @@ import { BrainCircuit, TrendingDown, ArrowRight, Lightbulb, Zap, HelpCircle } fr
 import { useSimulation } from '@/context/SimulationContext';
 
 export function EmsOptimizerCard() {
-  const { emsState } = useSimulation();
+  const { emsState, automationMode, setAutomationMode } = useSimulation();
   const { aiDecision, emsRecommendations } = emsState;
 
   return (
@@ -14,8 +14,20 @@ export function EmsOptimizerCard() {
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
           <BrainCircuit size={18} className="text-blue-500" /> AI Decision Engine
         </h2>
-        <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-200 uppercase tracking-wide flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Active
+        <div className="flex items-center gap-2">
+          <select 
+             value={automationMode} 
+             onChange={(e) => setAutomationMode(e.target.value as any)}
+             className="text-[10px] font-bold text-gray-700 bg-gray-100 border border-gray-200 rounded-lg px-2 py-1 outline-none cursor-pointer uppercase tracking-wider"
+          >
+             <option value="Autonomous">Autonomous</option>
+             <option value="Ask Permission">Ask Permission</option>
+             <option value="Manual">Manual</option>
+          </select>
+          
+          <div className={`px-2 py-1 ${automationMode === 'Manual' ? 'bg-gray-100 text-gray-600 border-gray-200' : automationMode === 'Ask Permission' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-blue-50 text-blue-600 border-blue-200'} text-[10px] font-bold rounded-lg border uppercase tracking-wide flex items-center gap-1`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${automationMode === 'Manual' ? 'bg-gray-400' : automationMode === 'Ask Permission' ? 'bg-orange-500 animate-pulse' : 'bg-blue-500 animate-pulse'}`}></span> {automationMode === 'Manual' ? 'Off' : 'Active'}
+          </div>
         </div>
       </div>
       

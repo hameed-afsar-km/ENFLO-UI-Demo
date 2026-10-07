@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, X, ArrowRight, Info, Zap } from 'lucide-react';
+import { AlertTriangle, X, ArrowRight, Info, Zap, BrainCircuit } from 'lucide-react';
 import { mockData } from '@/data/mock';
 
 export type SimulationEvent = {
@@ -26,6 +26,15 @@ interface SimulationContextType {
   markNotificationRead: (id: number) => void;
   markAllNotificationsRead: () => void;
   emsState: any;
+  automationMode: "Autonomous" | "Ask Permission" | "Manual";
+  setAutomationMode: (mode: "Autonomous" | "Ask Permission" | "Manual") => void;
+  timeString: string;
+  simulateTimeTransition: (targetTime: string) => void;
+  pendingPermission: string | null;
+  approveAction: () => void;
+  denyAction: () => void;
+  setFactoryLoad: (mw: number) => void;
+  setBatteryCapacity: (mwh: number) => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
@@ -51,6 +60,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     costProjection: { ...mockData.costProjection }
   });
 
+  const [timeString, setTimeString] = useState("14:30");
+  const timeIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [automationMode, setAutomationMode] = useState<"Autonomous" | "Ask Permission" | "Manual">("Autonomous");
+  const [pendingPermission, setPendingPermission] = useState<string | null>(null);
+
   const [notifications, setNotifications] = useState<any[]>(mockData.notifications);
 
   const triggerSimulation = (type: string) => {
@@ -62,6 +76,23 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     let message = "";
     let isCritical = false;
     let newEmsState = { ...emsState };
+
+    const isEmsScenario = ["Solar Surplus", "Solar Deficit", "Peak Tariff", "Upcoming Peak", "Battery Full", "Battery Reserve", "Storm Approaching"].includes(type);
+    if (isEmsScenario) {
+      newEmsState.currentPower = {
+        solarGenerationMw: 0,
+        factoryLoadMw: 0,
+        directToFactoryMw: 0,
+        toBatteryMw: 0,
+        toGridMw: 0,
+        batteryChargeMw: 0,
+        batteryDischargeMw: 0,
+        gridImportMw: 0,
+        gridExportMw: 0,
+        surplusMw: 0,
+        selfConsumptionRatio: 100
+      };
+    }
 
     if (type === 'Temperature Overload') {
       message = `Critical temperature threshold exceeded on ${randomPanel}. Derating output.`;
@@ -76,8 +107,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Solar generation spiked. Redirecting surplus to battery storage.`;
       newEmsState.currentPower.solarGenerationMw = 2.80;
       newEmsState.currentPower.factoryLoadMw = 1.25;
+      newEmsState.currentPower.directToFactoryMw = 1.25;
       newEmsState.currentPower.surplusMw = 1.55;
-      newEmsState.currentPower.gridExportMw = 0.0;
       newEmsState.currentPower.batteryChargeMw = 1.55;
       newEmsState.currentPower.toBatteryMw = 1.55;
       newEmsState.battery.state = "Charging";
@@ -90,12 +121,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Solar generation dropped. Discharging battery to cover factory load.`;
       newEmsState.currentPower.solarGenerationMw = 0.40;
       newEmsState.currentPower.factoryLoadMw = 2.20;
-      newEmsState.currentPower.surplusMw = 0;
       newEmsState.currentPower.directToFactoryMw = 0.40;
-      newEmsState.currentPower.batteryChargeMw = 0;
-      newEmsState.currentPower.toBatteryMw = 0;
       newEmsState.currentPower.batteryDischargeMw = 1.80;
-      newEmsState.currentPower.gridImportMw = 0.0;
       newEmsState.battery.state = "Discharging";
       newEmsState.aiDecision = {
         action: "Discharging Battery",
@@ -107,8 +134,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.tariffs.current = 9.40;
       newEmsState.currentPower.solarGenerationMw = 0.10;
       newEmsState.currentPower.factoryLoadMw = 2.00;
+      newEmsState.currentPower.directToFactoryMw = 0.10;
       newEmsState.currentPower.batteryDischargeMw = 1.90;
-      newEmsState.currentPower.gridImportMw = 0.0;
       newEmsState.battery.state = "Discharging";
       newEmsState.aiDecision = {
         action: "Peak Shifting via Battery",
@@ -119,10 +146,9 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `High tariff approaching in 30 mins. Preserving battery reserve.`;
       newEmsState.tariffs.current = 4.80;
       newEmsState.battery.state = "Reserve";
-      newEmsState.currentPower.batteryDischargeMw = 0;
-      newEmsState.currentPower.batteryChargeMw = 0;
       newEmsState.currentPower.solarGenerationMw = 0.8;
       newEmsState.currentPower.factoryLoadMw = 2.0;
+      newEmsState.currentPower.directToFactoryMw = 0.8;
       newEmsState.currentPower.gridImportMw = 1.2;
       newEmsState.aiDecision = {
         action: "Preserve Battery Reserve",
@@ -133,11 +159,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Battery reached max capacity. Exporting surplus to grid.`;
       newEmsState.battery.soc = 100;
       newEmsState.battery.state = "Full";
-      newEmsState.currentPower.batteryChargeMw = 0;
-      newEmsState.currentPower.toBatteryMw = 0;
       newEmsState.currentPower.solarGenerationMw = 2.5;
       newEmsState.currentPower.factoryLoadMw = 1.0;
+      newEmsState.currentPower.directToFactoryMw = 1.0;
       newEmsState.currentPower.surplusMw = 1.5;
+      newEmsState.currentPower.toGridMw = 1.5;
       newEmsState.currentPower.gridExportMw = 1.5;
       newEmsState.aiDecision = {
         action: "Exporting to Grid",
@@ -148,14 +174,24 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Battery hit minimum reserve limit. Switching to grid.`;
       newEmsState.battery.soc = 25;
       newEmsState.battery.state = "Reserve";
-      newEmsState.currentPower.batteryDischargeMw = 0;
-      newEmsState.currentPower.solarGenerationMw = 0;
       newEmsState.currentPower.factoryLoadMw = 1.8;
       newEmsState.currentPower.gridImportMw = 1.8;
       newEmsState.aiDecision = {
         action: "Switched to Grid Import",
         reason: "Battery reached minimum reserve limit (25%). Switched to grid to protect battery health.",
         expectedImpact: "Battery degraded avoided. Safety margin maintained."
+      };
+    } else if (type === 'Storm Approaching') {
+      message = `Storm forecasted for tomorrow. Pre-charging battery from grid at off-peak rates.`;
+      newEmsState.tariffs.current = 4.80;
+      newEmsState.battery.state = "Charging";
+      newEmsState.currentPower.batteryChargeMw = 1.20;
+      newEmsState.currentPower.factoryLoadMw = 1.5;
+      newEmsState.currentPower.gridImportMw = 2.70;
+      newEmsState.aiDecision = {
+        action: "Pre-charging before Storm",
+        reason: "Weather forecast predicts heavy rain tomorrow. Charging battery now at low tariff (₹4.80) to avoid importing expensive peak power tomorrow.",
+        expectedImpact: "Grid import avoided tomorrow. Estimated savings: ₹8,000."
       };
     }
 
@@ -172,7 +208,9 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       resolved: false
     };
 
-    setActiveSimulations(prev => [newSim, ...prev]);
+    if (isCritical) {
+      setActiveSimulations(prev => [newSim, ...prev]);
+    }
     setToastEvent(newSim);
 
     setNotifications(prev => [
@@ -193,17 +231,6 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     if (toastEvent?.id === id) {
       setToastEvent(null);
     }
-    // Revert to initial state if all EMS simulations are cleared
-    if (activeSimulations.length <= 1) {
-       setEmsState({
-         currentPower: { ...mockData.currentPower },
-         battery: { ...mockData.battery },
-         aiDecision: { ...mockData.aiDecision },
-         emsRecommendations: [...mockData.emsRecommendations],
-         tariffs: { ...mockData.tariffs },
-         costProjection: { ...mockData.costProjection }
-       });
-    }
   }
 
   const dismissToast = () => {
@@ -218,6 +245,78 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const simulateTimeTransition = (targetTimeStr: string) => {
+    const parseTime = (t: string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+    const currentMins = parseTime(timeString);
+    const targetMins = parseTime(targetTimeStr);
+    
+    let current = currentMins;
+    const step = targetMins > currentMins ? 10 : -10; // 10 min steps
+    
+    if (timeIntervalRef.current) clearInterval(timeIntervalRef.current);
+
+    timeIntervalRef.current = setInterval(() => {
+      current += step;
+      if ((step > 0 && current >= targetMins) || (step < 0 && current <= targetMins)) {
+        current = targetMins;
+        if (timeIntervalRef.current) clearInterval(timeIntervalRef.current);
+        
+        // Trigger context events based on the time we arrived at
+        let nextSim = "";
+        if (targetTimeStr === "18:00" || targetTimeStr === "20:00") nextSim = "Peak Tariff";
+        else if (targetTimeStr === "14:00" || targetTimeStr === "12:00") nextSim = "Solar Surplus";
+        else if (targetTimeStr === "08:00") nextSim = "Solar Deficit";
+        else if (targetTimeStr === "22:00") nextSim = "Storm Approaching";
+        else nextSim = "Upcoming Peak";
+
+        if (automationMode === "Ask Permission") {
+          setPendingPermission(nextSim);
+        } else if (automationMode === "Autonomous") {
+          triggerSimulation(nextSim);
+        }
+      }
+      
+      const h = Math.floor(current / 60).toString().padStart(2, '0');
+      const m = (current % 60).toString().padStart(2, '0');
+      setTimeString(`${h}:${m}`);
+    }, 50);
+  };
+
+  const approveAction = () => {
+    if (pendingPermission) {
+      triggerSimulation(pendingPermission);
+      setPendingPermission(null);
+    }
+  };
+
+  const denyAction = () => {
+    setPendingPermission(null);
+  };
+
+  const setFactoryLoad = (mw: number) => {
+    setEmsState(prev => ({
+      ...prev,
+      currentPower: {
+        ...prev.currentPower,
+        factoryLoadMw: mw
+      }
+    }));
+  };
+
+  const setBatteryCapacity = (mwh: number) => {
+    setEmsState(prev => ({
+      ...prev,
+      battery: {
+        ...prev.battery,
+        ratedCapacityMwh: mwh,
+        usableEnergyMwh: Number((mwh * (prev.battery.soc / 100)).toFixed(2))
+      }
+    }));
+  };
+
   const [isGlobalErrorModalOpen, setIsGlobalErrorModalOpen] = useState(false);
 
   const contextValue = React.useMemo(() => ({
@@ -229,13 +328,46 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     notifications,
     markNotificationRead,
     markAllNotificationsRead,
-    emsState
-  }), [activeSimulations, toastEvent, notifications, emsState]);
+    emsState,
+    automationMode,
+    setAutomationMode,
+    timeString,
+    simulateTimeTransition,
+    pendingPermission,
+    approveAction,
+    denyAction,
+    setFactoryLoad,
+    setBatteryCapacity
+  }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission]);
 
   return (
     <SimulationContext.Provider value={contextValue}>
       {children}
       
+      {/* Permission Modal */}
+      {pendingPermission && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-[400px] max-w-[90vw] animate-in zoom-in-95">
+             <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4 border-4 border-blue-100">
+                <BrainCircuit size={24} />
+             </div>
+             <h3 className="text-xl font-bold text-gray-900 mb-2">AI Action Requires Approval</h3>
+             <p className="text-sm text-gray-600 mb-6">
+               The EMS AI wants to execute: <strong className="text-blue-600">{pendingPermission}</strong>. 
+               Do you approve this automated decision?
+             </p>
+             <div className="flex gap-3">
+                <button onClick={denyAction} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-colors">
+                  Deny
+                </button>
+                <button onClick={approveAction} className="flex-1 py-2.5 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition-colors shadow-md shadow-blue-500/20">
+                  Approve & Execute
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast Modal (New Event) */}
       {toastEvent && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] animate-in slide-in-from-bottom-5 fade-in duration-300">
@@ -288,9 +420,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
               <button onClick={dismissToast} className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-gray-200 transition-all border border-transparent cursor-pointer">
                 Dismiss
               </button>
-              <button className={`flex-1 py-2.5 rounded-xl ${toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop') ? 'bg-red-50 text-red-600 hover:bg-red-100 border-red-100' : 'bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-100'} font-bold text-sm shadow-sm transition-all border flex items-center justify-center gap-2 group cursor-pointer`} onClick={() => { dismissToast(); setIsGlobalErrorModalOpen(true); }}>
-                Review Details <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </button>
+              {(toastEvent.type.includes('Failure') || toastEvent.type.includes('Overload') || toastEvent.type.includes('Drop')) && (
+                <button className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border-red-100 font-bold text-sm shadow-sm transition-all border flex items-center justify-center gap-2 group cursor-pointer" onClick={() => { dismissToast(); setIsGlobalErrorModalOpen(true); }}>
+                  Review Details <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
             </div>
           </div>
         </div>
