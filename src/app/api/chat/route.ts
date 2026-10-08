@@ -11,6 +11,7 @@ import {
   resolveModel,
   type OllamaChatMessage,
 } from "@/lib/assistant/ollama";
+import { openGroqStream, GroqUnavailableError } from "@/lib/assistant/groq";
 
 const MAX_MESSAGE_LENGTH = 600;
 const MAX_HISTORY_TURNS = 6;
@@ -22,6 +23,7 @@ type ChatRequestBody = {
   message?: string;
   history?: IncomingMessage[];
   context?: RuntimeContext;
+  provider?: "groq" | "ollama";
 };
 
 const encoder = new TextEncoder();
@@ -145,14 +147,34 @@ export async function POST(request: Request): Promise<Response> {
 
   let model: string;
   let upstream: ReadableStream<Uint8Array>;
+  let isGroq = body.provider === "groq";
 
   try {
-    model = await resolveModel(request.signal);
-    const opened = await openChatStream(model, messages, MAX_PREDICT_TOKENS, request.signal);
-    model = opened.model;
-    upstream = opened.stream;
+    if (isGroq) {
+      try {
+        const opened = await openGroqStream(messages, request.signal);
+        model = opened.model;
+        upstream = opened.stream;
+      } catch (err) {
+        if (err instanceof GroqUnavailableError) {
+          // Fallback to ollama
+          isGroq = false;
+          model = await resolveModel(request.signal);
+          const opened = await openChatStream(model, messages, MAX_PREDICT_TOKENS, request.signal);
+          model = opened.model;
+          upstream = opened.stream;
+        } else {
+          throw err;
+        }
+      }
+    } else {
+      model = await resolveModel(request.signal);
+      const opened = await openChatStream(model, messages, MAX_PREDICT_TOKENS, request.signal);
+      model = opened.model;
+      upstream = opened.stream;
+    }
   } catch (error) {
-    if (error instanceof OllamaUnavailableError) {
+    if (error instanceof OllamaUnavailableError || error instanceof GroqUnavailableError) {
       return new Response(streamFrom([{ type: "error", error: error.message }]), {
         status: 503,
         headers: streamHeaders(),
@@ -204,20 +226,38 @@ export async function POST(request: Request): Promise<Response> {
             buffer = buffer.slice(newlineIndex + 1);
             if (!line) continue;
 
-            let chunk: { message?: { content?: string }; error?: string };
-            try {
-              chunk = JSON.parse(line);
-            } catch {
-              continue;
+            let piece = "";
+            let chunkError = "";
+
+            if (isGroq) {
+              if (line === "data: [DONE]") continue;
+              if (line.startsWith("data: ")) {
+                try {
+                  const chunk = JSON.parse(line.slice(6));
+                  if (chunk.choices?.[0]?.delta?.content) {
+                    piece = chunk.choices[0].delta.content;
+                  }
+                  if (chunk.error) chunkError = chunk.error.message || chunk.error;
+                } catch {
+                  continue;
+                }
+              }
+            } else {
+              try {
+                const chunk = JSON.parse(line);
+                if (chunk.error) chunkError = chunk.error;
+                piece = chunk.message?.content ?? "";
+              } catch {
+                continue;
+              }
             }
 
-            if (chunk.error) {
-              controller.enqueue(sse({ type: "error", error: chunk.error }));
+            if (chunkError) {
+              controller.enqueue(sse({ type: "error", error: chunkError }));
               controller.close();
               return;
             }
 
-            const piece = chunk.message?.content ?? "";
             if (piece) {
               raw += piece;
               flush();

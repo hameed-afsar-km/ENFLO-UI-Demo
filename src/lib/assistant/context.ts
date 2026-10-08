@@ -19,6 +19,7 @@ export type RuntimeContext = {
     time: string;
     read: boolean;
   }>;
+  emsState?: any;
 };
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -100,8 +101,10 @@ function round(value: number, digits = 2): number {
  * Derived operational signals. The small model cannot be trusted to do this
  * arithmetic itself, so it is precomputed and handed over as fact.
  */
-function deriveInsights() {
-  const { currentPower, energyToday, performance, battery, costProjection, panels, forecastTomorrow } = mockData;
+function deriveInsights(runtimeEmsState?: any) {
+  const { energyToday, performance, costProjection, panels, forecastTomorrow } = mockData;
+  const currentPower = runtimeEmsState?.currentPower ?? mockData.currentPower;
+  const battery = runtimeEmsState?.battery ?? mockData.battery;
 
   const totalAcKw = panels.reduce((sum, p) => sum + p.acKw, 0);
   const totalDcKw = panels.reduce((sum, p) => sum + p.dcKw, 0);
@@ -198,11 +201,18 @@ type Section = {
  * a "what is the battery SOC" question makes the answer slower for no gain.
  */
 export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): string {
-  const insights = deriveInsights();
+  const insights = deriveInsights(runtime.emsState);
   const {
-    plantStatus, currentPower, energyToday, performance, solarConditions,
-    battery, forecastTomorrow, tariffs, costProjection, emsRecommendations, aiDecision, predictedEvents,
+    plantStatus, energyToday, performance, solarConditions,
+    forecastTomorrow, predictedEvents,
   } = mockData;
+  
+  const currentPower = runtime.emsState?.currentPower ?? mockData.currentPower;
+  const battery = runtime.emsState?.battery ?? mockData.battery;
+  const tariffs = runtime.emsState?.tariffs ?? mockData.tariffs;
+  const costProjection = runtime.emsState?.costProjection ?? mockData.costProjection;
+  const emsRecommendations = runtime.emsState?.emsRecommendations ?? mockData.emsRecommendations;
+  const aiDecision = runtime.emsState?.aiDecision ?? mockData.aiDecision;
 
   const active = runtime.activeSimulations ?? [];
   const notifications = runtime.notifications ?? [];

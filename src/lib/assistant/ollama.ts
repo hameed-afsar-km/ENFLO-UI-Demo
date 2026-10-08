@@ -6,11 +6,11 @@ const OLLAMA_HOST = (process.env.OLLAMA_HOST ?? "http://127.0.0.1:11434").replac
  * Override with OLLAMA_MODEL.
  */
 const MODEL_PREFERENCE = [
-  "llama3.2:3b", // 2.0 GB - best grounding and brevity at this size
+  "qwen3:0.6b", // 522 MB - requested fast/lightweight model
   "qwen2.5:1.5b", // 986 MB - smaller fallback, verbose but accurate
+  "llama3.2:3b", // 2.0 GB - best grounding and brevity at this size
   "gemma2:2b", // 1.6 GB - accurate but noticeably slower
   "qwen3:1.7b",
-  "qwen3:0.6b", // 522 MB - ultra light last resort
   "llama3.2:1b",
   "tinyllama",
 ];

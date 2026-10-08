@@ -35,6 +35,7 @@ interface SimulationContextType {
   denyAction: () => void;
   setFactoryLoad: (mw: number) => void;
   setBatteryCapacity: (mwh: number) => void;
+  setSolarGeneration: (mw: number) => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
@@ -296,25 +297,91 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setPendingPermission(null);
   };
 
-  const setFactoryLoad = (mw: number) => {
-    setEmsState(prev => ({
-      ...prev,
-      currentPower: {
-        ...prev.currentPower,
-        factoryLoadMw: mw
-      }
-    }));
-  };
+  const recalculatePowerFlows = (prev: any, solarMw: number, loadMw: number, capacityMwh: number) => {
+    const soc = prev.battery.soc;
+    const usableEnergy = capacityMwh * (soc / 100);
+    const maxChargePower = capacityMwh * 0.5; // 0.5C charge rate
+    const maxDischargePower = capacityMwh * 0.5; // 0.5C discharge rate
 
-  const setBatteryCapacity = (mwh: number) => {
-    setEmsState(prev => ({
+    let directToFactoryMw = 0;
+    let surplusMw = 0;
+    let deficitMw = 0;
+    
+    let batteryChargeMw = 0;
+    let batteryDischargeMw = 0;
+    let gridImportMw = 0;
+    let gridExportMw = 0;
+    
+    let toBatteryMw = 0;
+    let toGridMw = 0;
+    let batteryState = "Standby";
+
+    if (solarMw >= loadMw) {
+      directToFactoryMw = loadMw;
+      surplusMw = solarMw - loadMw;
+      
+      if (soc < 100) {
+        batteryChargeMw = Math.min(surplusMw, maxChargePower);
+        toBatteryMw = batteryChargeMw;
+        batteryState = "Charging";
+      }
+      
+      gridExportMw = surplusMw - batteryChargeMw;
+      toGridMw = gridExportMw;
+    } else {
+      directToFactoryMw = solarMw;
+      deficitMw = loadMw - solarMw;
+      
+      if (soc > 10) { 
+        batteryDischargeMw = Math.min(deficitMw, maxDischargePower);
+        batteryState = "Discharging";
+      }
+      
+      gridImportMw = deficitMw - batteryDischargeMw;
+    }
+
+    if (soc === 100 && batteryState === "Standby") batteryState = "Full";
+    if (soc <= 10 && batteryState === "Standby") batteryState = "Reserve";
+
+    const totalConsumption = loadMw;
+    const selfConsumed = directToFactoryMw + batteryDischargeMw;
+    const selfConsumptionRatio = totalConsumption > 0 ? Math.min(100, Math.round((selfConsumed / totalConsumption) * 100)) : 100;
+
+    return {
       ...prev,
       battery: {
         ...prev.battery,
-        ratedCapacityMwh: mwh,
-        usableEnergyMwh: Number((mwh * (prev.battery.soc / 100)).toFixed(2))
+        state: batteryState,
+        ratedCapacityMwh: capacityMwh,
+        usableEnergyMwh: Number(usableEnergy.toFixed(2))
+      },
+      currentPower: {
+        ...prev.currentPower,
+        solarGenerationMw: solarMw,
+        factoryLoadMw: loadMw,
+        directToFactoryMw,
+        toBatteryMw,
+        toGridMw,
+        batteryChargeMw,
+        batteryDischargeMw,
+        gridImportMw,
+        gridExportMw,
+        surplusMw,
+        selfConsumptionRatio
       }
-    }));
+    };
+  };
+
+  const setFactoryLoad = (mw: number) => {
+    setEmsState(prev => recalculatePowerFlows(prev, prev.currentPower.solarGenerationMw, mw, prev.battery.ratedCapacityMwh));
+  };
+
+  const setSolarGeneration = (mw: number) => {
+    setEmsState(prev => recalculatePowerFlows(prev, mw, prev.currentPower.factoryLoadMw, prev.battery.ratedCapacityMwh));
+  };
+
+  const setBatteryCapacity = (mwh: number) => {
+    setEmsState(prev => recalculatePowerFlows(prev, prev.currentPower.solarGenerationMw, prev.currentPower.factoryLoadMw, mwh));
   };
 
   const [isGlobalErrorModalOpen, setIsGlobalErrorModalOpen] = useState(false);
@@ -337,7 +404,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     approveAction,
     denyAction,
     setFactoryLoad,
-    setBatteryCapacity
+    setBatteryCapacity,
+    setSolarGeneration
   }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission]);
 
   return (

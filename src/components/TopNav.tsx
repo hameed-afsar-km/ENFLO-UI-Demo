@@ -40,7 +40,7 @@ export function TopNav() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const { notifications, markNotificationRead, markAllNotificationsRead, activeSimulations, triggerSimulation, fixSimulation, timeString, simulateTimeTransition, emsState, setFactoryLoad, setBatteryCapacity } = useSimulation();
+  const { notifications, markNotificationRead, markAllNotificationsRead, activeSimulations, triggerSimulation, fixSimulation, timeString, simulateTimeTransition, emsState, setFactoryLoad, setBatteryCapacity, setSolarGeneration } = useSimulation();
   
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -325,6 +325,22 @@ export function TopNav() {
                        <span>12:00</span>
                        <span>23:00</span>
                     </div>
+                  </div>
+                  
+                  <div className="mb-4 px-1">
+                    <div className="flex justify-between text-xs font-bold text-gray-600 mb-2">
+                      <span>Solar Generation</span>
+                      <span>{emsState.currentPower.solarGenerationMw.toFixed(2)} MW</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="5" 
+                      step="0.1"
+                      value={emsState.currentPower.solarGenerationMw}
+                      onChange={(e) => setSolarGeneration(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
                   </div>
                   
                   <div className="mb-4 px-1">

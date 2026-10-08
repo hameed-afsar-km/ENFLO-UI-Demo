@@ -11,6 +11,7 @@ export type ChatMessage = {
   content: string;
   refused?: boolean;
   error?: boolean;
+  model?: string;
 };
 
 type StreamEvent =
@@ -39,7 +40,13 @@ export function useAssistantChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [model, setModel] = useState<string | null>(null);
+  const [provider, setProvider] = useState<"groq" | "ollama">("groq");
   const abortRef = useRef<AbortController | null>(null);
+
+  const handleSetProvider = useCallback((newProvider: "groq" | "ollama") => {
+    setProvider(newProvider);
+    setModel(null);
+  }, []);
 
   const reset = useCallback(() => {
     abortRef.current?.abort();
@@ -85,7 +92,7 @@ export function useAssistantChat() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           signal: controller.signal,
-          body: JSON.stringify({ message: text, history, context: runtimeContext }),
+          body: JSON.stringify({ message: text, history, context: runtimeContext, provider }),
         });
 
         if (!res.body) throw new Error("Empty response from the assistant.");
@@ -110,7 +117,10 @@ export function useAssistantChat() {
             if (!event) continue;
 
             if (event.type === "meta") {
-              if (event.model) setModel(event.model);
+              if (event.model) {
+                setModel(event.model);
+                patchAssistant({ model: event.model });
+              }
               continue;
             }
 
@@ -167,5 +177,5 @@ export function useAssistantChat() {
     [isStreaming, messages],
   );
 
-  return { messages, isStreaming, model, send, stop, reset };
+  return { messages, isStreaming, model, provider, setProvider: handleSetProvider, send, stop, reset };
 }
