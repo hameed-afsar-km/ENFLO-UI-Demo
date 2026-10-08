@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, X, ArrowRight, Info, Zap, BrainCircuit } from 'lucide-react';
+import { AlertTriangle, X, ArrowRight, Info, Zap, BrainCircuit, MapPin, Wrench, Clock, AlertCircle } from 'lucide-react';
 import { mockData } from '@/data/mock';
 
 export type SimulationEvent = {
@@ -632,28 +632,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
             <div className="p-6 overflow-y-auto flex-1 bg-gray-50/50">
               <div className="flex flex-col gap-4">
                 {activeSimulations.map(sim => (
-                  <div key={sim.id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center shadow-sm">
-                    <div className={`w-12 h-12 shrink-0 rounded-xl ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-red-50 border-red-100 text-red-500' : 'bg-blue-50 border-blue-100 text-blue-500'} border flex items-center justify-center`}>
-                      {sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? <AlertTriangle size={24} /> : <Zap size={24} />}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-bold text-gray-900">{sim.type}</span>
-                        <span className={`shrink-0 px-2 py-0.5 rounded-full ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100'} border text-[10px] font-bold uppercase`}>Active</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mb-2 leading-snug">{sim.message}</p>
-                    </div>
-                    
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
-                      <button 
-                        onClick={() => fixSimulation(sim.id)}
-                        className={`px-6 py-2.5 rounded-lg ${sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'bg-green-500 hover:bg-green-600 shadow-green-500/20' : 'bg-gray-800 hover:bg-gray-900 shadow-gray-900/20'} text-white font-bold text-sm transition-colors shadow-sm`}
-                      >
-                        {sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') ? 'Fix Issue' : 'End Simulation'}
-                      </button>
-                    </div>
-                  </div>
+                  <SimulationEventCard key={sim.id} sim={sim} fixSimulation={fixSimulation} />
                 ))}
               </div>
             </div>
@@ -672,6 +651,65 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     </SimulationContext.Provider>
   );
 }
+
+const SimulationEventCard = ({ sim, fixSimulation }: { sim: ActiveSimulation, fixSimulation: (id: string) => void }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const isCritical = sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') || sim.type.includes('Outage');
+  
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col shadow-sm transition-all duration-300">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className={`w-12 h-12 shrink-0 rounded-xl ${isCritical ? 'bg-red-50 border-red-100 text-red-500' : 'bg-blue-50 border-blue-100 text-blue-500'} border flex items-center justify-center`}>
+          {isCritical ? <AlertTriangle size={24} /> : <Zap size={24} />}
+        </div>
+        
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-bold text-gray-900">{sim.type}</span>
+            <span className={`shrink-0 px-2 py-0.5 rounded-full ${isCritical ? 'bg-red-50 text-red-600 border-red-100' : 'bg-blue-50 text-blue-600 border-blue-100'} border text-[10px] font-bold uppercase`}>Active</span>
+          </div>
+          <p className="text-xs text-gray-600 leading-snug">{sim.message}</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0 mt-3 sm:mt-0">
+          <button 
+             onClick={() => setIsExpanded(!isExpanded)}
+             className="px-4 py-2.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 font-bold text-xs transition-colors"
+          >
+             {isExpanded ? 'Hide Details' : 'View Details'}
+          </button>
+          <button 
+            onClick={() => fixSimulation(sim.id)}
+            className={`px-6 py-2.5 rounded-lg ${isCritical ? 'bg-green-500 hover:bg-green-600 shadow-green-500/20' : 'bg-gray-800 hover:bg-gray-900 shadow-gray-900/20'} text-white font-bold text-sm transition-colors shadow-sm`}
+          >
+            {isCritical ? 'Fix Issue' : 'End Simulation'}
+          </button>
+        </div>
+      </div>
+      
+      {isExpanded && (
+        <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2">
+           <div>
+             <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Location</div>
+             <div className="text-sm font-semibold text-gray-800 flex items-center gap-1.5"><MapPin size={14} className="text-gray-400"/> {sim.plantName}</div>
+           </div>
+           <div>
+             <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Asset / Subsystem</div>
+             <div className="text-sm font-semibold text-gray-800 flex items-center gap-1.5"><Wrench size={14} className="text-gray-400"/> {sim.panelId}</div>
+           </div>
+           <div>
+             <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Time Reported</div>
+             <div className="text-sm font-semibold text-gray-800 flex items-center gap-1.5"><Clock size={14} className="text-gray-400"/> {new Date().toLocaleTimeString()}</div>
+           </div>
+           <div>
+             <div className="text-[10px] uppercase font-bold text-gray-400 mb-1 tracking-wider">Status</div>
+             <div className="text-sm font-semibold text-amber-600 flex items-center gap-1.5"><AlertCircle size={14} className="text-amber-500"/> Pending Resolution</div>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const useSimulation = () => {
   const context = useContext(SimulationContext);
