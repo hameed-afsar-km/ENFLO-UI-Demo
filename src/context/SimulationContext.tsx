@@ -652,7 +652,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
-const SimulationEventCard = ({ sim, fixSimulation }: { sim: ActiveSimulation, fixSimulation: (id: string) => void }) => {
+const SimulationEventCard = ({ sim, fixSimulation }: { sim: SimulationEvent, fixSimulation: (id: string) => void }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isCritical = sim.type.includes('Failure') || sim.type.includes('Overload') || sim.type.includes('Drop') || sim.type.includes('Outage');
   
