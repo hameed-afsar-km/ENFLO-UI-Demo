@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { mockData } from '@/data/mock';
-import { Bell, User, Search, CheckCheck, Info, CircleAlert, TriangleAlert, Zap, AlertTriangle, Bug, Wrench, Menu, X } from 'lucide-react';
+import { Bell, User, Search, CheckCheck, Info, CircleAlert, TriangleAlert, Zap, AlertTriangle, Bug, Wrench, Menu, X, Cloud, Coins, Clock, Unplug, Flame } from 'lucide-react';
 import { useSimulation } from '@/context/SimulationContext';
 
 const NAV_ITEMS = [
@@ -39,6 +39,7 @@ export function TopNav() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [localTime, setLocalTime] = useState<number | null>(null);
 
   const { notifications, markNotificationRead, markAllNotificationsRead, activeSimulations, triggerSimulation, fixSimulation, timeString, simulateTimeTransition, emsState, setFactoryLoad, setBatteryCapacity, setSolarGeneration } = useSimulation();
   
@@ -313,11 +314,14 @@ export function TopNav() {
                       min="0" 
                       max="23" 
                       step="1"
-                      value={parseInt(timeString.split(':')[0]) || 0}
+                      value={localTime !== null ? localTime : (parseInt(timeString.split(':')[0]) || 0)}
                       onChange={(e) => {
                          const h = parseInt(e.target.value);
+                         setLocalTime(h);
                          simulateTimeTransition(`${h.toString().padStart(2, '0')}:00`);
                       }}
+                      onMouseUp={() => setTimeout(() => setLocalTime(null), 500)}
+                      onTouchEnd={() => setTimeout(() => setLocalTime(null), 500)}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                     <div className="flex justify-between text-[10px] text-gray-400 mt-1 font-bold">
@@ -378,42 +382,60 @@ export function TopNav() {
                 
                 <div className="p-4 border-b border-border">
                   <div className="text-xs font-bold text-secondary-text uppercase tracking-wider mb-3">Trigger EMS Scenarios</div>
-                  <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto px-1 pb-1">
                     <button 
                       onClick={() => triggerSimulation('Solar Surplus')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white transition-colors"
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100/50 border border-orange-200 text-orange-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <Zap size={12} /> Solar Surplus
+                      <Zap size={14} className="text-orange-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">Solar Surplus</span>
                     </button>
                     <button 
                       onClick={() => triggerSimulation('Solar Deficit')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors"
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200 text-blue-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <AlertTriangle size={12} /> Solar Deficit
+                      <Cloud size={14} className="text-blue-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">Solar Deficit</span>
                     </button>
                     <button 
                       onClick={() => triggerSimulation('Peak Tariff')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-500 hover:text-white transition-colors"
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-red-50 to-red-100/50 border border-red-200 text-red-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <Bug size={12} /> Peak Tariff
+                      <Coins size={14} className="text-red-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">Peak Tariff</span>
                     </button>
                     <button 
                       onClick={() => triggerSimulation('Upcoming Peak')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-500 hover:text-white transition-colors"
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200 text-purple-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <AlertTriangle size={12} /> Upcoming Peak
+                      <Clock size={14} className="text-purple-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">Upcoming Peak</span>
+                    </button>
+                    
+                    <div className="col-span-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-2 mb-1">Hardware & Grid Issues</div>
+                    
+                    <button 
+                      onClick={() => triggerSimulation('Grid Outage')}
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 text-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all col-span-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Unplug size={14} className="text-gray-300" /> 
+                        <span className="text-[10px] font-bold leading-tight">Grid Outage (Islanding)</span>
+                      </div>
                     </button>
                     <button 
-                      onClick={() => triggerSimulation('Battery Full')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-green-50 text-green-600 hover:bg-green-500 hover:text-white transition-colors"
+                      onClick={() => triggerSimulation('Battery Failure')}
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-200 text-rose-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <Zap size={12} /> Battery Full
+                      <Flame size={14} className="text-rose-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">BESS Thermal Risk</span>
                     </button>
                     <button 
-                      onClick={() => triggerSimulation('Battery Reserve')}
-                      className="flex items-center gap-2 text-left px-3 py-2 text-[11px] font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-800 hover:text-white transition-colors"
+                      onClick={() => triggerSimulation('Inverter Failure')}
+                      className="flex flex-col items-start gap-1.5 p-2.5 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100/50 border border-yellow-200 text-yellow-700 hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                      <AlertTriangle size={12} /> Battery Reserve
+                      <AlertTriangle size={14} className="text-yellow-500" /> 
+                      <span className="text-[10px] font-bold leading-tight">Inverter Trip</span>
                     </button>
                   </div>
                 </div>

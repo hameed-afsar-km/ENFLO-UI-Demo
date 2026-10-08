@@ -78,7 +78,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     let isCritical = false;
     let newEmsState = { ...emsState };
 
-    const isEmsScenario = ["Solar Surplus", "Solar Deficit", "Peak Tariff", "Upcoming Peak", "Battery Full", "Battery Reserve", "Storm Approaching"].includes(type);
+    const isEmsScenario = ["Solar Surplus", "Solar Deficit", "Peak Tariff", "Upcoming Peak", "Battery Full", "Battery Reserve", "Storm Approaching", "Grid Outage", "Battery Failure", "Inverter Failure"].includes(type);
     if (isEmsScenario) {
       newEmsState.currentPower = {
         solarGenerationMw: 0,
@@ -104,6 +104,34 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     } else if (type === 'Voltage Drop') {
       message = `Unexpected DC voltage drop detected on ${randomPanel}.`;
       isCritical = true;
+    } else if (type === 'Grid Outage') {
+      message = `External grid failure detected. Entering Islanding Mode.`;
+      isCritical = true;
+      newEmsState.currentPower = { ...recalculatePowerFlows(newEmsState, newEmsState.currentPower.solarGenerationMw, newEmsState.currentPower.factoryLoadMw, newEmsState.battery.ratedCapacityMwh, true).currentPower };
+      newEmsState.aiDecision = {
+        action: "Islanding Mode Activated",
+        reason: "Grid voltage dropped to 0V. Disconnected from grid to protect internal microgrid. Battery discharging to maintain factory load.",
+        expectedImpact: "Operations maintained during blackout."
+      };
+    } else if (type === 'Battery Failure') {
+      message = `BESS internal temperature critical. Emergency shutdown initiated.`;
+      isCritical = true;
+      newEmsState.battery.state = "Idle";
+      newEmsState.currentPower = { ...recalculatePowerFlows(newEmsState, newEmsState.currentPower.solarGenerationMw, newEmsState.currentPower.factoryLoadMw, 0.001).currentPower };
+      newEmsState.aiDecision = {
+        action: "Battery Disconnected",
+        reason: "Thermal runaway risk detected in Battery Rack B. Isolated battery system.",
+        expectedImpact: "Increased grid reliance until maintenance arrives."
+      };
+    } else if (type === 'Inverter Failure') {
+      message = `Central Inverter 2 tripped on over-voltage. Solar capacity reduced by 50%.`;
+      isCritical = true;
+      newEmsState.currentPower = { ...recalculatePowerFlows(newEmsState, newEmsState.currentPower.solarGenerationMw * 0.5, newEmsState.currentPower.factoryLoadMw, newEmsState.battery.ratedCapacityMwh).currentPower };
+      newEmsState.aiDecision = {
+        action: "Load Balancing",
+        reason: "Solar generation plummeted due to inverter trip. Discharging battery to stabilize factory voltage.",
+        expectedImpact: "Production continues uninterrupted."
+      };
     } else if (type === 'Solar Surplus') {
       message = `Solar generation spiked. Redirecting surplus to battery storage.`;
       newEmsState.currentPower.solarGenerationMw = 2.80;
@@ -133,24 +161,26 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     } else if (type === 'Peak Tariff') {
       message = `Peak tariff period started. Maximizing battery discharge.`;
       newEmsState.tariffs.current = 9.40;
-      newEmsState.currentPower.solarGenerationMw = 0.10;
+      newEmsState.currentPower.solarGenerationMw = 0.00; // Corrected to 0 for night time
       newEmsState.currentPower.factoryLoadMw = 2.00;
-      newEmsState.currentPower.directToFactoryMw = 0.10;
-      newEmsState.currentPower.batteryDischargeMw = 1.90;
+      newEmsState.currentPower.directToFactoryMw = 0.00;
+      newEmsState.currentPower.batteryDischargeMw = 2.00; // Fully covers load
       newEmsState.battery.state = "Discharging";
       newEmsState.aiDecision = {
         action: "Peak Shifting via Battery",
         reason: "Grid tariff is currently HIGH (₹9.40/kWh). Discharging battery to minimize grid import cost.",
-        expectedImpact: "Grid import avoided. Peak savings: ₹17,860/hr."
+        expectedImpact: "Grid import avoided. Peak savings: ₹18,800/hr."
       };
     } else if (type === 'Upcoming Peak') {
       message = `High tariff approaching in 30 mins. Preserving battery reserve.`;
       newEmsState.tariffs.current = 4.80;
       newEmsState.battery.state = "Reserve";
-      newEmsState.currentPower.solarGenerationMw = 0.8;
+      const [h] = timeStr.split(':').map(Number);
+      const isNight = h >= 19 || h < 6;
+      newEmsState.currentPower.solarGenerationMw = isNight ? 0.0 : 0.8;
       newEmsState.currentPower.factoryLoadMw = 2.0;
-      newEmsState.currentPower.directToFactoryMw = 0.8;
-      newEmsState.currentPower.gridImportMw = 1.2;
+      newEmsState.currentPower.directToFactoryMw = isNight ? 0.0 : 0.8;
+      newEmsState.currentPower.gridImportMw = isNight ? 2.0 : 1.2;
       newEmsState.aiDecision = {
         action: "Preserve Battery Reserve",
         reason: "Peak tariff (₹9.40/kWh) begins in 30 mins. Holding current SoC to use during peak hours instead of now.",
@@ -175,8 +205,14 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Battery hit minimum reserve limit. Switching to grid.`;
       newEmsState.battery.soc = 25;
       newEmsState.battery.state = "Reserve";
+      
+      const [h] = timeStr.split(':').map(Number);
+      const isNight = h >= 19 || h < 6;
+      newEmsState.currentPower.solarGenerationMw = isNight ? 0.0 : 0.4;
       newEmsState.currentPower.factoryLoadMw = 1.8;
-      newEmsState.currentPower.gridImportMw = 1.8;
+      newEmsState.currentPower.directToFactoryMw = isNight ? 0.0 : 0.4;
+      newEmsState.currentPower.gridImportMw = isNight ? 1.8 : 1.4;
+      
       newEmsState.aiDecision = {
         action: "Switched to Grid Import",
         reason: "Battery reached minimum reserve limit (25%). Switched to grid to protect battery health.",
@@ -186,8 +222,10 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       message = `Storm forecasted for tomorrow. Pre-charging battery from grid at off-peak rates.`;
       newEmsState.tariffs.current = 4.80;
       newEmsState.battery.state = "Charging";
+      newEmsState.currentPower.solarGenerationMw = 0.00;
+      newEmsState.currentPower.directToFactoryMw = 0.00;
       newEmsState.currentPower.batteryChargeMw = 1.20;
-      newEmsState.currentPower.factoryLoadMw = 1.5;
+      newEmsState.currentPower.factoryLoadMw = 1.50;
       newEmsState.currentPower.gridImportMw = 2.70;
       newEmsState.aiDecision = {
         action: "Pre-charging before Storm",
@@ -266,17 +304,53 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
         if (timeIntervalRef.current) clearInterval(timeIntervalRef.current);
         
         // Trigger context events based on the time we arrived at
+        const h = parseInt(targetTimeStr.split(':')[0]);
         let nextSim = "";
-        if (targetTimeStr === "18:00" || targetTimeStr === "20:00") nextSim = "Peak Tariff";
-        else if (targetTimeStr === "14:00" || targetTimeStr === "12:00") nextSim = "Solar Surplus";
-        else if (targetTimeStr === "08:00") nextSim = "Solar Deficit";
+        
+        if (targetTimeStr === "18:00") nextSim = "Peak Tariff";
+        else if (targetTimeStr === "12:00") nextSim = "Solar Surplus";
+        else if (targetTimeStr === "17:00") nextSim = "Upcoming Peak";
         else if (targetTimeStr === "22:00") nextSim = "Storm Approaching";
-        else nextSim = "Upcoming Peak";
 
-        if (automationMode === "Ask Permission") {
-          setPendingPermission(nextSim);
-        } else if (automationMode === "Autonomous") {
-          triggerSimulation(nextSim);
+        if (nextSim) {
+          if (automationMode === "Ask Permission") {
+            setPendingPermission(nextSim);
+          } else if (automationMode === "Autonomous") {
+            triggerSimulation(nextSim);
+          }
+        } else {
+           // Normal diurnal update without triggering a toast alert
+           setEmsState(prev => {
+              // We only apply the natural curve if the user hasn't heavily modified it,
+              // but to respect user intent ("no simply resetting"), we just recalculate based on their EXISTING load/solar sliders,
+              // unless it's night time, in which case we strictly zero out solar.
+              
+              let newSolarMw = prev.currentPower.solarGenerationMw;
+              let newLoadMw = prev.currentPower.factoryLoadMw;
+              
+              if (h >= 19 || h < 6) {
+                newSolarMw = 0.00; // Physics: no solar at night
+              }
+              
+              const isGridOutage = prev.aiDecision?.action === "Islanding Mode Activated";
+              const updated = recalculatePowerFlows(prev, newSolarMw, newLoadMw, prev.battery.ratedCapacityMwh, isGridOutage);
+              
+              if (h >= 18 && h < 23) updated.tariffs.current = 9.40;
+              else if (h >= 14 && h < 18) updated.tariffs.current = 4.80;
+              else if (h >= 23 || h < 10) updated.tariffs.current = 5.10;
+              else updated.tariffs.current = 5.20;
+              
+              // Only overwrite AI decision if not in a critical state
+              if (!isGridOutage && !prev.battery.state.includes("Idle")) {
+                updated.aiDecision = {
+                  action: "Normal Operations",
+                  reason: "Standard power flow balancing based on current load and tariff schedule.",
+                  expectedImpact: "System maintaining nominal efficiency."
+                };
+              }
+              
+              return updated;
+           });
         }
       }
       
@@ -297,11 +371,11 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setPendingPermission(null);
   };
 
-  const recalculatePowerFlows = (prev: any, solarMw: number, loadMw: number, capacityMwh: number) => {
+  const recalculatePowerFlows = (prev: any, solarMw: number, loadMw: number, capacityMwh: number, forceGridZero: boolean = false) => {
     const soc = prev.battery.soc;
     const usableEnergy = capacityMwh * (soc / 100);
     const maxChargePower = capacityMwh * 0.5; // 0.5C charge rate
-    const maxDischargePower = capacityMwh * 0.5; // 0.5C discharge rate
+    const maxDischargePower = capacityMwh * 1.0; // Allowed 1.0C discharge for emergencies
 
     let directToFactoryMw = 0;
     let surplusMw = 0;
@@ -314,30 +388,45 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     
     let toBatteryMw = 0;
     let toGridMw = 0;
-    let batteryState = "Standby";
+    let batteryState = prev.battery.state === "Idle" ? "Idle" : "Standby";
 
     if (solarMw >= loadMw) {
       directToFactoryMw = loadMw;
       surplusMw = solarMw - loadMw;
       
-      if (soc < 100) {
+      if (soc < 100 && batteryState !== "Idle") {
         batteryChargeMw = Math.min(surplusMw, maxChargePower);
         toBatteryMw = batteryChargeMw;
         batteryState = "Charging";
       }
       
-      gridExportMw = surplusMw - batteryChargeMw;
-      toGridMw = gridExportMw;
+      if (!forceGridZero) {
+        gridExportMw = surplusMw - batteryChargeMw;
+        toGridMw = gridExportMw;
+      }
     } else {
       directToFactoryMw = solarMw;
       deficitMw = loadMw - solarMw;
       
-      if (soc > 10) { 
-        batteryDischargeMw = Math.min(deficitMw, maxDischargePower);
-        batteryState = "Discharging";
+      if (soc > 10 && batteryState !== "Idle") { 
+        if (forceGridZero) {
+          // If no grid, battery MUST cover the entire deficit, up to its physical limit
+          batteryDischargeMw = Math.min(deficitMw, maxDischargePower);
+        } else {
+          // Normal case: optimize discharge (e.g. 0.5C normal rate)
+          batteryDischargeMw = Math.min(deficitMw, capacityMwh * 0.5);
+        }
+        if (batteryDischargeMw > 0) batteryState = "Discharging";
       }
       
-      gridImportMw = deficitMw - batteryDischargeMw;
+      if (!forceGridZero) {
+        gridImportMw = deficitMw - batteryDischargeMw;
+      } else {
+        // Islanding mode: Grid is 0. If battery can't cover it, load must be curtailed.
+        if (batteryDischargeMw < deficitMw) {
+          loadMw = solarMw + batteryDischargeMw; // Curtail load to match available power exactly
+        }
+      }
     }
 
     if (soc === 100 && batteryState === "Standby") batteryState = "Full";
@@ -377,7 +466,13 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   };
 
   const setSolarGeneration = (mw: number) => {
-    setEmsState(prev => recalculatePowerFlows(prev, mw, prev.currentPower.factoryLoadMw, prev.battery.ratedCapacityMwh));
+    const [h, m] = timeString.split(':').map(Number);
+    const timeVal = h + m / 60;
+    const isNight = timeVal >= 19 || timeVal < 6;
+    
+    // Completely reject any solar generation during night hours
+    const finalMw = isNight ? 0 : mw;
+    setEmsState(prev => recalculatePowerFlows(prev, finalMw, prev.currentPower.factoryLoadMw, prev.battery.ratedCapacityMwh));
   };
 
   const setBatteryCapacity = (mwh: number) => {

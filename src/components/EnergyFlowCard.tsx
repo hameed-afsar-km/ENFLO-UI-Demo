@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { useSimulation } from '@/context/SimulationContext';
-import { Sun, Factory, BatteryMedium, Zap, HelpCircle, ArrowRight, ArrowDown, BrainCircuit } from 'lucide-react';
+import { Sun, Sunrise, Sunset, Moon, Factory, BatteryMedium, Zap, HelpCircle, ArrowRight, ArrowDown, BrainCircuit } from 'lucide-react';
 
 export function EnergyFlowCard() {
-  const { emsState, automationMode } = useSimulation();
+  const { emsState, automationMode, timeString } = useSimulation();
   const isAiActive = automationMode !== 'Manual';
   const { 
     solarGenerationMw, 
@@ -20,18 +20,37 @@ export function EnergyFlowCard() {
     surplusMw
   } = emsState.currentPower;
 
+  const getSolarIconInfo = () => {
+    if (!timeString) return { Icon: Sun, color: 'text-orange-500', bg: 'bg-orange-100', border: 'border-orange-300', label: 'SOLAR' };
+    
+    const [h, m] = timeString.split(':').map(Number);
+    const timeVal = h + m / 60;
+    
+    if (timeVal >= 6 && timeVal < 8) {
+      return { Icon: Sunrise, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-300', label: 'SUNRISE' };
+    } else if (timeVal >= 8 && timeVal < 17) {
+      return { Icon: Sun, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-300', label: 'SOLAR' };
+    } else if (timeVal >= 17 && timeVal < 19) {
+      return { Icon: Sunset, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-300', label: 'SUNSET' };
+    } else {
+      return { Icon: Moon, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-300', label: 'NIGHT' };
+    }
+  };
+
+  const { Icon, color, bg, border, label } = getSolarIconInfo();
+
   return (
     <div className="solid-card p-5 h-full flex flex-col group">
       <div className="flex justify-between items-start mb-2">
         <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Energy Flow</h2>
         <div className="flex gap-2">
           {isAiActive && (
-            <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-200 flex items-center gap-1">
+            <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-200 flex items-center gap-1 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping"></span> AI OPTIMIZING
             </div>
           )}
           {surplusMw > 0 && (
-            <div className="px-2 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold rounded-lg border border-orange-200">
+            <div className="px-2 py-1 bg-orange-50 text-orange-600 text-[10px] font-bold rounded-lg border border-orange-200 shadow-sm">
               {surplusMw.toFixed(2)} MW SURPLUS
             </div>
           )}
@@ -41,18 +60,23 @@ export function EnergyFlowCard() {
       <div className="flex-1 flex flex-col items-center justify-between py-4 relative">
         
         {/* Top: Solar */}
-        <div className="flex flex-col items-center w-full relative z-10">
-          <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mb-1 shadow-md border-2 border-orange-300">
-            <Sun size={28} className="text-orange-500" />
+        <div className="flex flex-col items-center w-full relative z-10 transition-colors duration-1000">
+          <div className={`w-14 h-14 rounded-full ${bg} flex items-center justify-center mb-1 shadow-md border-2 ${border} transition-colors duration-1000`}>
+            <Icon size={28} className={color} />
           </div>
-          <div className="text-center bg-white/80 px-2 py-1 rounded backdrop-blur-sm">
-            <div className="font-black text-gray-900 text-sm">SOLAR</div>
-            <div className="text-xs text-orange-600 font-bold">{solarGenerationMw.toFixed(2)} MW</div>
+          <div className="text-center bg-white/80 px-2 py-1 rounded backdrop-blur-sm shadow-sm border border-white/50">
+            <div className={`font-black text-xs tracking-wider ${color} transition-colors duration-1000`}>{label}</div>
+            <div className={`text-sm ${color} font-bold`}>{solarGenerationMw.toFixed(2)} MW</div>
           </div>
         </div>
         
          {/* Middle Flow Area */}
          <div className="w-full flex-1 min-h-[100px] relative my-2">
+            {/* Solar drop stub (Connects Solar node to branches) */}
+            {solarGenerationMw > 0 && (
+              <div className="absolute top-0 h-[20%] left-1/2 w-[2px] bg-orange-400 -translate-x-1/2 z-0" />
+            )}
+            
             {/* Solar to Factory (Center) */}
             {directToFactoryMw > 0 && (
               <div className="absolute top-0 bottom-0 left-1/2 w-[2px] bg-orange-400 -translate-x-1/2 z-10">
