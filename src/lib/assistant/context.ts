@@ -267,10 +267,10 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
         "ems", "dispatch", "decide", "decision", "recommend", "ai decision", "what-if", "what if", "simulat", "slider", "projected",
       ],
       build: () => [
-        `TARIFF: current ${tariffs.current} rupees per kWh, which is the ${tariffs.nextChangeTime === "18:00" ? "low" : "current"} band. It changes to ${tariffs.nextTariff} rupees per kWh at ${tariffs.nextChangeTime}. Timeline: ${tariffs.timeline.map((t) => `${t.time} ${t.price} (${t.type})`).join(", ")}.`,
+        `TARIFF: current ${tariffs.current} rupees per kWh, which is the ${tariffs.nextChangeTime === "18:00" ? "low" : "current"} band. It changes to ${tariffs.nextTariff} rupees per kWh at ${tariffs.nextChangeTime}. Timeline: ${tariffs.timeline.map((t: any) => `${t.time} ${t.price} (${t.type})`).join(", ")}.`,
         `COST TODAY (one day): no-optimizer baseline ₹${costProjection.baselineCostToday}. With the optimizer ₹${costProjection.optimizedCostToday}. Saving ₹${costProjection.estimatedSavingToday} (${insights.dailySavingPct}%). This is TODAY's saving, never confuse it with the weekly or annual series.`,
         `EMS DECISION (right now): ${aiDecision.action}. ${aiDecision.reason} Expected impact: ${aiDecision.expectedImpact}`,
-        `EMS RECOMMENDATIONS: ${emsRecommendations.map((r) => `${r.action} (${r.priority} priority): ${r.reason}`).join(" | ")}`,
+        `EMS RECOMMENDATIONS: ${emsRecommendations.map((r: any) => `${r.action} (${r.priority} priority): ${r.reason}`).join(" | ")}`,
         `WHAT-IF SIMULATOR (annual figures): baseline battery capacity 5 MWh gives about Rs 45 lakh of annual saving. Each extra 1 MWh of capacity adds roughly Rs 8.5 lakh of annual saving. Slider range 2 to 20 MWh.`,
         `ANALYTICS EMS SAVINGS (this week, rupees, per day): ${savingsSeries.map((r) => `${r.day} saved ${r.savings} versus ${r.withoutEms} without EMS`).join("; ")}. These are weekly/day series. Do not add the daily saving to these.`,
       ],
