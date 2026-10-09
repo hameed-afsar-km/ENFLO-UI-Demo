@@ -204,7 +204,8 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
   const insights = deriveInsights(runtime.emsState);
   const {
     plantStatus, energyToday, performance, solarConditions,
-    forecastTomorrow, predictedEvents,
+    forecastTomorrow = runtime.emsState?.forecastTomorrow ?? mockData.forecastTomorrow,
+    predictedEvents = runtime.emsState?.predictedEvents ?? mockData.predictedEvents,
   } = mockData;
   
   const currentPower = runtime.emsState?.currentPower ?? mockData.currentPower;

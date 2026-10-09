@@ -58,7 +58,9 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     aiDecision: { ...mockData.aiDecision },
     emsRecommendations: [...mockData.emsRecommendations],
     tariffs: { ...mockData.tariffs },
-    costProjection: { ...mockData.costProjection }
+    costProjection: { ...mockData.costProjection },
+    predictedEvents: [...mockData.predictedEvents],
+    forecastTomorrow: { ...mockData.forecastTomorrow }
   });
 
   const [timeString, setTimeString] = useState("14:30");
@@ -67,6 +69,100 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   const [pendingPermission, setPendingPermission] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState<any[]>(mockData.notifications);
+
+  useEffect(() => {
+    // 1. Fetch real-time open-source forecast data from Open-Meteo
+    const fetchWeather = async () => {
+      try {
+        // Fetching for Chennai
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=13.0827&longitude=80.2707&hourly=temperature_2m,cloud_cover&daily=temperature_2m_max,shortwave_radiation_sum&timezone=Asia%2FKolkata");
+        const data = await res.json();
+        
+        if (data && data.hourly && data.daily) {
+          const tomorrowMaxTemp = data.daily.temperature_2m_max[1] || 35;
+          const tomorrowRadiation = data.daily.shortwave_radiation_sum[1] || 15;
+          
+          let newPredictedEvents = [];
+          
+          if (tomorrowMaxTemp > 38) {
+            newPredictedEvents.push({
+              id: 1,
+              asset: "PNL-08",
+              message: `Likely thermal runaway or inverter trip if temp exceeds 50°C. Open-Meteo forecast max temp is ${tomorrowMaxTemp}°C.`,
+              probability: 85,
+              expectedTime: "Tomorrow 14:00"
+            });
+          } else {
+             newPredictedEvents.push({
+              id: 1,
+              asset: "PNL-08",
+              message: `Normal operating temperatures expected tomorrow based on Open-Meteo forecast (Max ${tomorrowMaxTemp}°C).`,
+              probability: 10,
+              expectedTime: "Tomorrow 14:00"
+            });
+          }
+          
+          if (data.hourly.cloud_cover[36] > 60) {
+            newPredictedEvents.push({
+              id: 2,
+              asset: "Grid Connection",
+              message: `High risk of grid instability due to heavy cloud cover forecasted by Open-Meteo.`,
+              probability: 70,
+              expectedTime: "Tomorrow 12:00"
+            });
+          } else {
+            newPredictedEvents.push({
+              id: 2,
+              asset: "Plant",
+              message: `Clear skies forecasted by Open-Meteo, optimal generation expected.`,
+              probability: 95,
+              expectedTime: "Tomorrow"
+            });
+          }
+
+          setEmsState(prev => ({
+            ...prev,
+            predictedEvents: newPredictedEvents,
+            forecastTomorrow: {
+              ...prev.forecastTomorrow,
+              pvGenerationMwh: Number((tomorrowRadiation * 0.8).toFixed(1)),
+            }
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch Open-Meteo data", err);
+      }
+    };
+    
+    fetchWeather();
+  }, []);
+
+  // 2. 3-second Live-like Generation & Update Loop
+  useEffect(() => {
+    const liveInterval = setInterval(() => {
+      setEmsState(prev => {
+        // Add random jitter to simulate live telemetry
+        const solarJitter = (Math.random() - 0.5) * 0.08; 
+        const loadJitter = (Math.random() - 0.5) * 0.04;
+        
+        let newSolar = prev.currentPower.solarGenerationMw + solarJitter;
+        let newLoad = prev.currentPower.factoryLoadMw + loadJitter;
+
+        // Prevent negative values
+        if (newSolar < 0) newSolar = 0;
+        if (newLoad < 0.5) newLoad = 0.5;
+
+        // Ensure 0 solar at night
+        const [h] = timeString.split(':').map(Number);
+        if (h >= 19 || h < 6) {
+          newSolar = 0;
+        }
+
+        return recalculatePowerFlows(prev, newSolar, newLoad, prev.battery.ratedCapacityMwh, prev.aiDecision?.action === "Islanding Mode Activated");
+      });
+    }, 3000);
+    return () => clearInterval(liveInterval);
+  }, [timeString]);
 
   const triggerSimulation = (type: string) => {
     const randomPlant = PLANTS[Math.floor(Math.random() * PLANTS.length)];

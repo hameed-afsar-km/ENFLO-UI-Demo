@@ -3,10 +3,12 @@
 import React from 'react';
 import { mockData } from '@/data/mock';
 import { ArrowRight, TrendingUp, HelpCircle } from 'lucide-react';
+import { useSimulation } from '@/context/SimulationContext';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export function ForecastCard() {
-  const { pvGenerationMwh, pvUncertainty, factoryDemandMwh, demandUncertainty, expectedEveningPeak } = mockData.forecastTomorrow;
+  const { emsState } = useSimulation();
+  const { pvGenerationMwh, pvUncertainty, factoryDemandMwh, demandUncertainty, expectedEveningPeak } = emsState.forecastTomorrow || mockData.forecastTomorrow;
   const { hourlyForecast } = mockData;
 
   return (
