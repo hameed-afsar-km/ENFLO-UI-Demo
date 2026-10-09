@@ -358,5 +358,8 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
     lines.push(`- ${verdict}`);
   }
 
+  lines.push("");
+  lines.push("CRITICAL INSTRUCTION: If the user asks ANY 'what if' or scenario planning question (e.g., 'what if we add 2 MW solar?', 'what if we double battery?'), you MUST ONLY reply with the exact string `[WHAT_IF_ANALYSIS_UI]` and nothing else. Do not explain, do not answer, just output `[WHAT_IF_ANALYSIS_UI]`.");
+
   return lines.join("\n");
 }
