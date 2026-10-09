@@ -15,29 +15,39 @@ const CHENNAI_PANELS = ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-1
 const COIMBATORE_PANELS = ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'];
 const MADURAI_PANELS = ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'];
 
+const computePlantStatus = (panels: any[]) => {
+  if (panels.some(p => p.status === 'Critical' || p.status === 'Fault' || p.status === 'Error')) return 'Fault';
+  if (panels.some(p => p.status === 'Warning')) return 'Warning';
+  return 'Normal';
+};
+
+const chennaiPanels = mockData.panels.filter(p => CHENNAI_PANELS.includes(p.id));
+const coimbatorePanels = mockData.panels.filter(p => COIMBATORE_PANELS.includes(p.id));
+const maduraiPanels = mockData.panels.filter(p => MADURAI_PANELS.includes(p.id));
+
 const PLANTS = [
   {
     id: 'PL-01',
     name: 'ENECO Chennai',
     location: 'Chennai, TN',
-    status: 'Normal',
-    panels: mockData.panels.filter(p => CHENNAI_PANELS.includes(p.id)),
+    status: computePlantStatus(chennaiPanels),
+    panels: chennaiPanels,
     lat: 13.0827, lng: 80.2707
   },
   {
     id: 'PL-02',
     name: 'ENECO Coimbatore',
     location: 'Coimbatore, TN',
-    status: 'Warning',
-    panels: mockData.panels.filter(p => COIMBATORE_PANELS.includes(p.id)),
+    status: computePlantStatus(coimbatorePanels),
+    panels: coimbatorePanels,
     lat: 11.0168, lng: 76.9558
   },
   {
     id: 'PL-03',
     name: 'ENECO Madurai',
     location: 'Madurai, TN',
-    status: 'Normal',
-    panels: mockData.panels.filter(p => MADURAI_PANELS.includes(p.id)),
+    status: computePlantStatus(maduraiPanels),
+    panels: maduraiPanels,
     lat: 9.9252, lng: 78.1198
   }
 ];

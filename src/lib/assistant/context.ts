@@ -37,9 +37,9 @@ export function labelForRoute(route: string | null | undefined): string | null {
 }
 
 const PLANT_PANELS: Record<string, string[]> = {
-  "ENECO Chennai": ["PNL-01", "PNL-02", "PNL-03", "PNL-04"],
-  "ENECO Coimbatore": ["PNL-05", "PNL-06", "PNL-07"],
-  "ENECO Madurai": ["PNL-08", "PNL-09"],
+  "ENECO Chennai": ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'],
+  "ENECO Coimbatore": ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'],
+  "ENECO Madurai": ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'],
 };
 
 /** Series rendered by the Analytics screen tabs, mirrored for grounding. */
@@ -288,7 +288,7 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
           (p) => `  ${p.id}: ${p.status}. AC ${p.acKw} kW. DC ${p.dcKw} kW. Efficiency ${p.eff}%. Temperature ${p.temp}C. Energy ${p.energyMwh} MWh. PR ${p.pr}%.`,
         ),
         `ASSET ATTENTION: ${insights.warningPanelIds.length > 0 ? insights.warningPanelIds.join("; ") : "no array is flagged"}. Lowest performer is ${insights.worstPanel}. Hottest asset is ${insights.hottestPanel}. Modules derate above roughly 45C.`,
-        `SITES: ENECO Chennai PL-01 has PNL-01 to PNL-04. ENECO Coimbatore PL-02 has PNL-05 to PNL-07 and is flagged Warning. ENECO Madurai PL-03 has PNL-08 to PNL-09.`,
+        `SITES: ENECO Chennai PL-01 has 14 panels (PNL-01 to 04, PNL-10 to 19). ENECO Coimbatore PL-02 has 13 panels (PNL-05 to 07, PNL-20 to 29). ENECO Madurai PL-03 has 12 panels (PNL-08 to 09, PNL-30 to 39).`,
       ],
     },
     {
