@@ -217,7 +217,7 @@ export default function WhatIfPage() {
                       contentStyle={{ borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                       itemStyle={{ fontWeight: 600 }}
                       labelStyle={{ color: '#6B7280', fontWeight: 700, marginBottom: '4px' }}
-                      formatter={(value: number) => [`₹${value.toFixed(0)}`, '']}
+                      formatter={(value: any) => [`₹${Number(value).toFixed(0)}`, '']}
                     />
                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 600 }} />
                     <Area type="monotone" name="Current Baseline Cost (₹)" dataKey="original" stroke="#9ca3af" fill="url(#colorOriginal)" strokeDasharray="4 4" strokeWidth={2} />

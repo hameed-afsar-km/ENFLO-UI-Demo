@@ -298,7 +298,7 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
       ],
       build: () => [
         `EVENTS LOG: ${mockData.events.map((e) => `${e.time} ${e.asset} ${e.message}`).join("; ")}.`,
-        `PREDICTED EVENTS: ${predictedEvents.map((e) => `${e.expectedTime} on ${e.asset}: ${e.message} (${e.probability}% probability)`).join(" | ")}. Use these to answer questions about future events or predictions.`,
+        `PREDICTED EVENTS: ${predictedEvents.map((e: any) => `${e.expectedTime} on ${e.asset}: ${e.message} (${e.probability}% probability)`).join(" | ")}. Use these to answer questions about future events or predictions.`,
         active.length > 0
           ? `ACTIVE UNRESOLVED ALERTS (treat as top priority): ${active
               .map(
