@@ -30,31 +30,35 @@ export default function Dashboard() {
           <CurrentPowerCard />
         </div>
 
-        {/* ROW 2: AI Optimization, Battery, Tariffs, Costs */}
+        {/* ROW 2: AI Optimization & Storage (6 + 6) */}
         <div className="md:col-span-12 flex flex-col">
-           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Intelligent Optimization</h3>
+           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Intelligent Optimization &amp; Storage</h3>
         </div>
 
         <div className="md:col-span-12 lg:col-span-6 flex flex-col">
           <EmsOptimizerCard />
         </div>
         
-        <div className="md:col-span-6 lg:col-span-3 flex flex-col">
-          <TariffTimelineCard />
-        </div>
-        
-        <div className="md:col-span-6 lg:col-span-3 flex flex-col gap-6">
-          <div className="flex-1 min-h-0">
-             <BatteryDetailCard />
-          </div>
-          <div className="flex-1 min-h-0">
-             <CostAnalysisCard />
-          </div>
+        <div className="md:col-span-12 lg:col-span-6 flex flex-col">
+          <BatteryDetailCard />
         </div>
 
-        {/* ROW 3: Charts and Analytics */}
+        {/* ROW 3: Financial Profit & Dynamic Grid Tariff (6 + 6) */}
         <div className="md:col-span-12 flex flex-col">
-           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Analytics & Metrics</h3>
+           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Economics &amp; Dynamic Tariffs</h3>
+        </div>
+
+        <div className="md:col-span-12 lg:col-span-6 flex flex-col">
+          <CostAnalysisCard />
+        </div>
+
+        <div className="md:col-span-12 lg:col-span-6 flex flex-col">
+          <TariffTimelineCard />
+        </div>
+
+        {/* ROW 4: Charts and Analytics */}
+        <div className="md:col-span-12 flex flex-col">
+           <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Analytics &amp; Metrics</h3>
         </div>
 
         <div className="md:col-span-12 lg:col-span-7 flex flex-col">
