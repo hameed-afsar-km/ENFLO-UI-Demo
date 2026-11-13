@@ -83,15 +83,36 @@ function TypingDots() {
 }
 
 export function ChatbotWidget() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { 
+    activeSimulations, 
+    notifications, 
+    emsState, 
+    isAssistantOpen, 
+    setIsAssistantOpen, 
+    assistantInitialPrompt, 
+    setAssistantInitialPrompt 
+  } = useSimulation();
+
+  const isOpen = isAssistantOpen;
+  const setIsOpen = setIsAssistantOpen;
+
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const { messages, isStreaming, model, provider, setProvider, send, stop, reset } = useAssistantChat();
-  const { activeSimulations, notifications, emsState } = useSimulation();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (assistantInitialPrompt) {
+      setInputValue(assistantInitialPrompt);
+      setAssistantInitialPrompt(null);
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }
+  }, [assistantInitialPrompt, setAssistantInitialPrompt]);
 
   const selectedPlant = searchParams?.get("plantName") ?? null;
 

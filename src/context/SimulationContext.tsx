@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, X, ArrowRight, Info, Zap, BrainCircuit, MapPin, Wrench, Clock, AlertCircle } from 'lucide-react';
 import { mockData } from '@/data/mock';
@@ -117,6 +117,11 @@ interface SimulationContextType {
   currentPlantPanels: string[];
   plantPanelCount: number;
   selectedPanelData: PanelData | undefined;
+  isAssistantOpen: boolean;
+  setIsAssistantOpen: (open: boolean) => void;
+  openAssistant: (initialPrompt?: string) => void;
+  assistantInitialPrompt: string | null;
+  setAssistantInitialPrompt: (prompt: string | null) => void;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
@@ -177,6 +182,17 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     );
     return isError ? { ...base, status: 'Critical', acKw: 0, dcKw: 0, eff: 0 } : base;
   }, [selectedPanel, selectedPlant, activeSimulations]);
+
+  // Assistant Chat Open State
+  const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [assistantInitialPrompt, setAssistantInitialPrompt] = useState<string | null>(null);
+
+  const openAssistant = useCallback((initialPrompt?: string) => {
+    if (initialPrompt) {
+      setAssistantInitialPrompt(initialPrompt);
+    }
+    setIsAssistantOpen(true);
+  }, []);
 
   useEffect(() => {
     // 1. Fetch real-time open-source forecast data from Open-Meteo
@@ -735,8 +751,13 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setSelectedPanel,
     currentPlantPanels,
     plantPanelCount,
-    selectedPanelData
-  }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission, selectedPlant, selectedPanel, currentPlantPanels, plantPanelCount, selectedPanelData]);
+    selectedPanelData,
+    isAssistantOpen,
+    setIsAssistantOpen,
+    openAssistant,
+    assistantInitialPrompt,
+    setAssistantInitialPrompt
+  }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission, selectedPlant, selectedPanel, currentPlantPanels, plantPanelCount, selectedPanelData, isAssistantOpen, assistantInitialPrompt]);
 
   return (
     <SimulationContext.Provider value={contextValue}>

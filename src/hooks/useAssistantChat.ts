@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import type { RuntimeContext } from "@/lib/assistant/context";
+import type { ScenarioResult } from "@/lib/assistant/scenario";
 
 export type ChatRole = "user" | "assistant";
 
@@ -12,10 +13,11 @@ export type ChatMessage = {
   refused?: boolean;
   error?: boolean;
   model?: string;
+  scenario?: ScenarioResult;
 };
 
 type StreamEvent =
-  | { type: "meta"; model?: string; gated?: boolean }
+  | { type: "meta"; model?: string; gated?: boolean; scenario?: ScenarioResult }
   | { type: "delta"; text: string }
   | { type: "done"; answer: string; refused?: string }
   | { type: "error"; error: string };
@@ -120,6 +122,9 @@ export function useAssistantChat() {
               if (event.model) {
                 setModel(event.model);
                 patchAssistant({ model: event.model });
+              }
+              if (event.scenario) {
+                patchAssistant({ scenario: event.scenario });
               }
               continue;
             }

@@ -43,7 +43,7 @@ export default function Dashboard() {
           <BatteryDetailCard />
         </div>
 
-        {/* ROW 3: Financial Profit & Dynamic Grid Tariff (6 + 6) */}
+        {/* ROW 4: Financial Profit & Dynamic Grid Tariff (6 + 6) */}
         <div className="md:col-span-12 flex flex-col">
            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mt-4">Economics &amp; Dynamic Tariffs</h3>
         </div>

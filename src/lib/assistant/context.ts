@@ -1,4 +1,7 @@
 import { mockData } from "@/data/mock";
+import { getPanelIdsForPlant } from "./plants";
+
+export { getPanelIdsForPlant };
 
 export type RuntimeContext = {
   route?: string | null;
@@ -35,12 +38,6 @@ export function labelForRoute(route: string | null | undefined): string | null {
   const clean = route.split("?")[0];
   return ROUTE_LABELS[clean] ?? clean;
 }
-
-const PLANT_PANELS: Record<string, string[]> = {
-  "ENERCO Chennai": ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'],
-  "ENERCO Coimbatore": ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'],
-  "ENERCO Madurai": ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'],
-};
 
 /** Series rendered by the Analytics screen tabs, mirrored for grounding. */
 const solarVsLoad = [
@@ -86,11 +83,6 @@ const savingsSeries = [
   { day: "Thu", withoutEms: 36000, withEms: 20000, savings: 16000 },
   { day: "Fri", withoutEms: 33000, withEms: 21500, savings: 11500 },
 ];
-
-export function getPanelIdsForPlant(plant: string | null | undefined): string[] {
-  if (!plant) return [];
-  return PLANT_PANELS[plant] ?? [];
-}
 
 function round(value: number, digits = 2): number {
   const factor = 10 ** digits;
@@ -272,7 +264,6 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
         `COST TODAY (one day): no-optimizer baseline ₹${costProjection.baselineCostToday}. With the optimizer ₹${costProjection.optimizedCostToday}. Saving ₹${costProjection.estimatedSavingToday} (${insights.dailySavingPct}%). This is TODAY's saving, never confuse it with the weekly or annual series.`,
         `EMS DECISION (right now): ${aiDecision.action}. ${aiDecision.reason} Expected impact: ${aiDecision.expectedImpact}`,
         `EMS RECOMMENDATIONS: ${emsRecommendations.map((r: any) => `${r.action} (${r.priority} priority): ${r.reason}`).join(" | ")}`,
-        `WHAT-IF SIMULATOR (annual figures): baseline battery capacity 5 MWh gives about Rs 45 lakh of annual saving. Each extra 1 MWh of capacity adds roughly Rs 8.5 lakh of annual saving. Slider range 2 to 20 MWh.`,
         `ANALYTICS EMS SAVINGS (this week, rupees, per day): ${savingsSeries.map((r) => `${r.day} saved ${r.savings} versus ${r.withoutEms} without EMS`).join("; ")}. These are weekly/day series. Do not add the daily saving to these.`,
       ],
     },
@@ -357,9 +348,6 @@ export function buildLiveContext(runtime: RuntimeContext = {}, question = ""): s
   for (const verdict of insights.verdicts) {
     lines.push(`- ${verdict}`);
   }
-
-  lines.push("");
-  lines.push("CRITICAL INSTRUCTION: If the user asks ANY 'what if' or scenario planning question (e.g., 'what if we add 2 MW solar?', 'what if we double battery?'), you MUST ONLY reply with the exact string `[WHAT_IF_ANALYSIS_UI]` and nothing else. Do not explain, do not answer, just output `[WHAT_IF_ANALYSIS_UI]`.");
 
   return lines.join("\n");
 }

@@ -1,4 +1,5 @@
 import { buildLiveContext, type RuntimeContext } from "@/lib/assistant/context";
+import { detectScenario } from "@/lib/assistant/scenario";
 import {
   buildSystemPrompt,
   evaluateScope,
@@ -38,6 +39,7 @@ function sanitize(text: string): string {
     .replace(/<think>[\s\S]*?<\/think>/gi, "")
     .replace(/<think>[\s\S]*$/i, "")
     .replace(/<\/?(?:think|thought|scratchpad)>/gi, "")
+    .replace(/\[WHAT_IF_ANALYSIS_UI\]/gi, "")
     .trim();
 }
 
@@ -136,8 +138,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // ---- Layer 2: grounded generation ----
+  const scenario = detectScenario(trimmed, runtimeContext.selectedPlant);
   const liveContext = buildLiveContext(runtimeContext, trimmed);
-  const systemPrompt = buildSystemPrompt(liveContext);
+  const systemPrompt = buildSystemPrompt(scenario ? `${liveContext}\n\n${scenario.prompt}` : liveContext);
+  const scenarioMeta = scenario ? { ...scenario, prompt: undefined } : undefined;
 
   const messages: OllamaChatMessage[] = [
     { role: "system", content: systemPrompt },
@@ -185,7 +189,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const guarded = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(sse({ type: "meta", model }));
+      controller.enqueue(sse({ type: "meta", model, scenario: scenarioMeta }));
       const reader = upstream.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -210,7 +214,16 @@ export async function POST(request: Request): Promise<Response> {
 
       const emitFinal = () => {
         const clean = normalizeAnswer(raw);
-        const answer = clean.length === 0 || looksOffTopic(clean) ? OUT_OF_SCOPE_NOTICE : clean;
+        const scenarioFallback = scenario?.verbal ?? OUT_OF_SCOPE_NOTICE;
+        const redirected = Boolean(
+          scenario && /\b(what[- ]if|simulator|open the|click|dashboard where)\b/i.test(clean),
+        );
+        const answer =
+          clean.length === 0 || looksOffTopic(clean)
+            ? scenarioFallback
+            : redirected
+              ? scenarioFallback
+              : clean;
         controller.enqueue(sse({ type: "done", answer }));
       };
 

@@ -641,7 +641,7 @@ export const SUGGESTIONS = [
   "Which panel needs attention?",
   "How much battery is available tonight?",
   "What are the active events?",
-  "Predict future events",
+  "What if we remove 2 panels from Chennai?",
 ];
 
 export function buildSystemPrompt(liveContext: string): string {
@@ -662,6 +662,7 @@ export function buildSystemPrompt(liveContext: string): string {
     "- Daily savings, the weekly EMS savings series and the EMS expected impact are three separate figures. Never merge them and never sum them.",
     "- When asked what EMS saved this week, answer only from the weekly day-by-day series and do not open with a total unless you have added it up yourself.",
     "- If the data lacks the answer, say so and point to the nearest metric that exists.",
+    "- Scenario questions ('what if we remove 2 panels', 'what if we add 2 MW solar') get a verbal prediction. When a SCENARIO PREDICTION block is present in LIVE PLANT DATA, use those numbers, lead with the generation and profit impact, state the assumption in one clause, and note that the projection chart is shown with your reply. Never redirect the user to a separate simulator or page.",
     "- HARD LIMIT: at most 4 sentences OR at most 4 bullet lines. Never exceed this, even if asked to explain more.",
     "- Plain text only. No markdown, no bold, no headings, no numbered lists, no preamble such as 'Great question'.",
     "- Open with the number or the verdict, then the reason. Name the asset and time window.",
@@ -679,6 +680,9 @@ export function buildSystemPrompt(liveContext: string): string {
     "",
     "Q: What did EMS save this week?",
     "A: EMS saved 11000 rupees Monday, 12000 Tuesday, 12000 Wednesday, 16000 Thursday and 11500 Friday, against no-EMS baselines of 32000 to 36000 a day. That is weekly, not annual.",
+    "",
+    "Q: What if we remove 2 panels from Chennai?",
+    "A: Removing 2 of Chennai's 14 arrays cuts generation from 16.6 to 14.4 MWh a day, which trims annual profit from Rs 5.38 Cr to Rs 4.66 Cr, about 13.4% lower. I assumed the two weakest arrays are the ones removed. The projection chart is shown with this reply.",
     "",
     "Q: What's the capital of France?",
     "A: That is outside what I cover. Ask me about PR, battery reserve or tomorrow's savings.",

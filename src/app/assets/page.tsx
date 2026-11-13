@@ -1,12 +1,76 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PlantStatusHeader } from "@/components/PlantStatusHeader";
 import { mockData } from "@/data/mock";
 import { MapPin, ChevronDown, Search, Activity, X } from "lucide-react";
 import { useSimulation } from "@/context/SimulationContext";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+
+type HealthPoint = { day: string; health: number };
+
+type HealthHistory = {
+  series: HealthPoint[];
+  totalErrors: number;
+  lowProduction: number;
+  maintenance: number;
+  uptime: string;
+};
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let i = 0; i < value.length; i += 1) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function seededRandom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Deterministic per-asset history: same panel always plots the same curve. */
+function buildHealthHistory(
+  panelId: string,
+  panel?: { pr: number; eff: number; temp: number },
+): HealthHistory {
+  const seed = hashString(panelId);
+  const rand = seededRandom(seed);
+  const pr = panel?.pr ?? 82;
+  const eff = panel?.eff ?? 95;
+  const temp = panel?.temp ?? 42;
+
+  const base = Math.max(78, Math.min(97, pr + (eff - 95) * 1.2 - Math.max(0, temp - 42) * 0.35));
+  const drift = (rand() - 0.5) * 2.5;
+  const phase = (seed % 628) / 100;
+  const dipDay = 7 + (seed % 15);
+  const dipDepth = 12 + (seed % 14);
+
+  const series: HealthPoint[] = Array.from({ length: 30 }, (_, index) => {
+    const seasonal = Math.sin(index / 4.5 + phase) * 1.6;
+    const noise = (rand() - 0.5) * 1.4;
+    const dip = index === dipDay ? dipDepth : index === dipDay + 1 ? dipDepth * 0.5 : 0;
+    const health = base + drift + seasonal + noise - dip;
+    return { day: `Day ${index + 1}`, health: Number(Math.min(99.5, Math.max(58, health)).toFixed(1)) };
+  });
+
+  const totalErrors =
+    series.filter((point, index) => index > 0 && series[index - 1].health - point.health > 3).length +
+    (seed % 3);
+  const lowProduction = series.filter((point) => point.health < 80).length;
+  const maintenance = 1 + (seed % 4);
+  const uptime = Math.max(97.5, 100 - totalErrors * 0.08 - lowProduction * 0.04).toFixed(2);
+
+  return { series, totalErrors, lowProduction, maintenance, uptime };
+}
 
 // Mocking Plants
 const PLANTS = [
@@ -55,11 +119,11 @@ function AssetsPageContent() {
     return isError ? { ...p, status: 'Critical', acKw: 0, dcKw: 0, eff: 0 } : p;
   });
 
-  // Mock health data
-  const healthData = Array.from({ length: 30 }).map((_, i) => ({
-    day: `Day ${i + 1}`,
-    health: 80 + Math.random() * 20 - (Math.random() > 0.9 ? 30 : 0) // Occasional drops
-  }));
+  const healthHistory = useMemo(() => {
+    if (!healthModalAsset) return null;
+    const panel = selectedPlant.panels.find((item) => item.id === healthModalAsset);
+    return buildHealthHistory(healthModalAsset, panel);
+  }, [healthModalAsset, selectedPlant]);
 
   return (
     <div className="flex flex-col gap-6 w-full pb-20 relative">
@@ -177,7 +241,7 @@ function AssetsPageContent() {
       </div>
 
       {/* Health History Modal */}
-      {healthModalAsset && (
+      {healthModalAsset && healthHistory && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-[700px] max-w-[95vw] animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
@@ -199,26 +263,26 @@ function AssetsPageContent() {
             </div>
             <div className="px-6 py-4 grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-gray-100 bg-gray-50/50">
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
-                <div className="text-xl font-black text-gray-900">12</div>
+                <div className="text-xl font-black text-gray-900">{healthHistory.totalErrors}</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Total Errors</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
-                <div className="text-xl font-black text-orange-500">4</div>
+                <div className="text-xl font-black text-orange-500">{healthHistory.lowProduction}</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Low Production</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
-                <div className="text-xl font-black text-emerald-500">2</div>
+                <div className="text-xl font-black text-emerald-500">{healthHistory.maintenance}</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Maintenance</div>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-3 text-center shadow-sm">
-                <div className="text-xl font-black text-green-500">99.8%</div>
+                <div className="text-xl font-black text-green-500">{healthHistory.uptime}%</div>
                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-wider mt-1">Uptime</div>
               </div>
             </div>
             
             <div className="p-6 h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={healthData}>
+                <AreaChart data={healthHistory.series}>
                   <defs>
                     <linearGradient id="colorHealth" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
