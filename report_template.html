@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ENERCO EMS - Feature Summary</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm 18mm 15mm 18mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      font-size: 10pt;
+      line-height: 1.6;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      width: 100%;
+      height: 262mm;
+      max-height: 262mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+
+    .page-break {
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2.5px solid #0284c7;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: #0284c7;
+      color: #ffffff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18pt;
+      font-weight: bold;
+    }
+
+    .header-title {
+      font-size: 17pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .header-subtitle {
+      font-size: 9pt;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 8pt;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .header-meta strong {
+      color: #0284c7;
+    }
+
+    /* Overview Box */
+    .overview-box {
+      background: #f8fafc;
+      border-left: 4px solid #0284c7;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 10pt;
+      color: #334155;
+    }
+
+    .overview-box strong {
+      color: #0f172a;
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title::before {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 15px;
+      background: #0284c7;
+      border-radius: 2px;
+    }
+
+    /* Bullet List Cards */
+    .bullet-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    .bullet-card.blue {
+      background: #f0f9ff;
+      border-color: #bae6fd;
+    }
+
+    .bullet-card.green {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    ul.clean-list {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul.clean-list li {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: 10px;
+      font-size: 9.8pt;
+      color: #334155;
+    }
+
+    ul.clean-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    ul.clean-list li::before {
+      content: "•";
+      position: absolute;
+      left: 6px;
+      top: -1px;
+      color: #0284c7;
+      font-size: 14pt;
+      font-weight: bold;
+    }
+
+    .list-title {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    /* Stat boxes */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 14pt;
+      font-weight: 800;
+      color: #0284c7;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 4px;
+    }
+
+    /* Badges */
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-pdf { background: #fee2e2; color: #dc2626; }
+    .tag-csv { background: #dcfce7; color: #16a34a; }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+      margin-top: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: #94a3b8;
+    }
+
+    .footer strong {
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======================== PAGE 1 ======================== -->
+  <div class="page page-break">
+    <div>
+      <!-- Header -->
+      <div class="header">
+        <div class="header-brand">
+          <div class="logo-icon">⚡</div>
+          <div>
+            <div class="header-title">ENERCO Energy Management System</div>
+            <div class="header-subtitle">Key Features & Capabilities Summary</div>
+          </div>
+        </div>
+        <div class="header-meta">
+          <strong>Quick Reference</strong><br>
+          Solar • BESS • Factory Load
+        </div>
+      </div>
+
+      <!-- Quick Summary Box -->
+      <div class="overview-box">
+        <strong>What is ENERCO?</strong><br>
+        A smart software platform that connects solar panels, large battery storage (BESS), factory electricity demand, and the power grid. It automatically stores cheap surplus solar power and uses battery power during expensive peak hours to lower electricity bills.
+      </div>
+
+      <!-- Section 1: What It Analyzes -->
+      <div class="section-title">1. What It Analyzes (Real-Time Monitoring)</div>
+      <div class="bullet-card">
+        <ul class="clean-list">
+          <li>
+            <span class="list-title">☀️ Solar vs. Factory Power Balance:</span> Continuously tracks solar generation (MW) against factory power consumption to route surplus energy or cover shortages.
+          </li>
+          <li>
+            <span class="list-title">🔋 Battery Storage (BESS) Health:</span> Monitors charge percentage (SoC), overall battery health (SoH), temperature, and keeps charge within safe limits (25% to 95%).
+          </li>
+          <li>
+            <span class="list-title">🔍 39 Solar Panel Strings:</span> Monitors electricity output, temperature, and dust buildup across 3 plant sites (Chennai, Coimbatore, Madurai). Flags panels hotter than 45°C.
+          </li>
+          <li>
+            <span class="list-title">💰 Electricity Tariffs & Savings:</span> Watches live electricity prices (off-peak ₹4.80 vs. peak ₹9.40/kWh) and calculates real-time money saved by avoiding expensive grid power.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 2: What It Predicts -->
+      <div class="section-title">2. What It Predicts (Smart Forecasting)</div>
+      <div class="bullet-card blue">
+        <ul class="clean-list">
+          <li>
+            <span class="list-title">🌤️ Tomorrow's Solar Power:</span> Ingests live weather forecasts (Open-Meteo) including sunlight, clouds, and temperature to predict next-day energy generation (MWh).
+          </li>
+          <li>
+            <span class="list-title">⚠️ Equipment Overheating & Trips:</span> Warns operators up to 4 hours in advance if a solar inverter or battery cell climbs above 50°C, preventing hardware damage.
+          </li>
+          <li>
+            <span class="list-title">⚡ Storms & Grid Blackouts:</span> Detects approaching bad weather or grid instability, automatically pre-charging the battery to keep the factory running without power cuts.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Quick Stat Cards -->
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-number">3 Sites</div>
+          <div class="stat-label">Tamil Nadu Plants</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">39 Panels</div>
+          <div class="stat-label">Live String Sensors</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">2–20 MWh</div>
+          <div class="stat-label">Battery Capacity</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">₹4.8–₹9.4</div>
+          <div class="stat-label">Tariff Rates / kWh</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Page 1 -->
+    <div class="footer">
+      <span>ENERCO Energy Management System &bull; System Feature Report</span>
+      <span>Page <strong>1</strong> of <strong>2</strong></span>
+    </div>
+  </div>
+
+  <!-- ======================== PAGE 2 ======================== -->
+  <div class="page">
+    <div>
+      <!-- Header Page 2 -->
+      <div class="header">
+        <div class="header-brand">
+          <div class="logo-icon" style="background: #059669;">📊</div>
+          <div>
+            <div class="header-title">ENERCO Visualizations, Reports & Tools</div>
+            <div class="header-subtitle">Screens, Document Center & Interactive Features</div>
+          </div>
+        </div>
+        <div class="header-meta">
+          <strong>Quick Reference</strong><br>
+          Dashboards • Exports • AI Tools
+        </div>
+      </div>
+
+      <!-- Section 3: What It Visualizes -->
+      <div class="section-title">3. What It Visualizes (Screens & Graphs)</div>
+      <div class="bullet-card">
+        <ul class="clean-list">
+          <li>
+            <span class="list-title">🔀 Live Energy Flow Diagram:</span> Animated screen showing real-time power transfers between Solar Panels, Battery, Factory, and the Grid with live megawatt numbers.
+          </li>
+          <li>
+            <span class="list-title">📈 5 Interactive Analytics Graphs:</span> Clear visual charts for (1) Solar vs. Load, (2) Battery Charge %, (3) Grid Import/Export, (4) Tariff Rates, and (5) Daily Money Saved.
+          </li>
+          <li>
+            <span class="list-title">🗺️ Interactive Plant Map:</span> Map of 3 plant sites (Chennai, Coimbatore, Madurai) with color pins: Green (Normal), Amber (Warning), and Red (Fault).
+          </li>
+          <li>
+            <span class="list-title">📋 30-Day Asset Health Curves:</span> Click any of the 39 panels to open an interactive 30-day health graph showing performance trends over time.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 4: What It Reports -->
+      <div class="section-title">4. What It Reports (Downloadable Documents)</div>
+      <div class="bullet-card">
+        <ul class="clean-list">
+          <li>
+            <span class="list-title">📄 Daily Yield & Economics <span class="tag tag-pdf">PDF</span>:</span> Total solar power harvested, self-consumption %, peak power avoided, and daily rupee savings.
+          </li>
+          <li>
+            <span class="list-title">📄 AI Optimizer Savings <span class="tag tag-pdf">PDF</span>:</span> Comparison of actual energy spend vs. what it would have cost without battery storage.
+          </li>
+          <li>
+            <span class="list-title">📊 Battery Health Summary <span class="tag tag-csv">CSV</span>:</span> Full battery audit including charge cycles, cell temperatures, and warranty records.
+          </li>
+          <li>
+            <span class="list-title">📄 Monthly Performance (PR) <span class="tag tag-pdf">PDF</span>:</span> Standard solar plant efficiency score (IEC 61724 PR rating).
+          </li>
+          <li>
+            <span class="list-title">📊 Maintenance & Alarm Log <span class="tag tag-csv">CSV</span>:</span> Detailed list of all alarms, inverter trips, and operator fixes.
+          </li>
+        </ul>
+      </div>
+
+      <!-- Section 5: Other Key Features -->
+      <div class="section-title">5. Other Key Features ("What-If" & AI)</div>
+      <div class="bullet-card green">
+        <ul class="clean-list">
+          <li>
+            <span class="list-title">🔮 "What-If" Planning Simulator:</span> Use interactive sliders to adjust battery size (MWh) and solar size (MW). Instantly see total investment cost, payback period (ROI in years), and CO2 offset.
+          </li>
+          <li>
+            <span class="list-title">🤖 Context-Aware AI Chatbot:</span> Ask questions like <em>"Which panel needs attention?"</em> or <em>"How much battery is available tonight?"</em> and get instant answers based on live sensor data.
+          </li>
+          <li>
+            <span class="list-title">⚡ Smart Automation Modes:</span> Switch between <strong>Autonomous</strong> (auto-dispatch), <strong>Ask Permission</strong> (operator approval prompts), or <strong>Manual</strong> control.
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Footer Page 2 -->
+    <div class="footer">
+      <span>ENERCO Energy Management System &bull; System Feature Report</span>
+      <span>Page <strong>2</strong> of <strong>2</strong></span>
+    </div>
+  </div>
+
+</body>
+</html>

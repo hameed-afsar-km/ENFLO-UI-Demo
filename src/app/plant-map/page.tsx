@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { PlantStatusHeader } from "@/components/PlantStatusHeader";
 import { mockData } from "@/data/mock";
-import { Search, ChevronLeft, MapPin } from "lucide-react";
+import { Search, ChevronLeft, MapPin, Zap, ArrowRight } from "lucide-react";
+import { useSimulation } from "@/context/SimulationContext";
 
 const MapComponent = dynamic(() => import("@/components/MapComponent"), {
   ssr: false,
@@ -28,7 +30,7 @@ const maduraiPanels = mockData.panels.filter(p => MADURAI_PANELS.includes(p.id))
 const PLANTS = [
   {
     id: 'PL-01',
-    name: 'ENECO Chennai',
+    name: 'ENERCO Chennai',
     location: 'Chennai, TN',
     status: computePlantStatus(chennaiPanels),
     panels: chennaiPanels,
@@ -36,7 +38,7 @@ const PLANTS = [
   },
   {
     id: 'PL-02',
-    name: 'ENECO Coimbatore',
+    name: 'ENERCO Coimbatore',
     location: 'Coimbatore, TN',
     status: computePlantStatus(coimbatorePanels),
     panels: coimbatorePanels,
@@ -44,7 +46,7 @@ const PLANTS = [
   },
   {
     id: 'PL-03',
-    name: 'ENECO Madurai',
+    name: 'ENERCO Madurai',
     location: 'Madurai, TN',
     status: computePlantStatus(maduraiPanels),
     panels: maduraiPanels,
@@ -53,10 +55,30 @@ const PLANTS = [
 ];
 
 export default function PlantMapPage() {
+  const router = useRouter();
+  const { selectedPlant: contextPlant, setSelectedPlant, setSelectedPanel, activeSimulations } = useSimulation();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlantId, setSelectedPlantId] = useState<string | null>(null);
 
   const selectedPlant = PLANTS.find(p => p.id === selectedPlantId);
+
+  const handleSelectPlant = (plantId: string) => {
+    setSelectedPlantId(plantId);
+    setSearchQuery("");
+    const plant = PLANTS.find(p => p.id === plantId);
+    if (plant) {
+      setSelectedPlant(plant.name);
+    }
+  };
+
+  const handleSelectPanelAndNavigate = (panelId: string) => {
+    if (selectedPlant) {
+      setSelectedPlant(selectedPlant.name);
+      setSelectedPanel(panelId);
+      router.push("/");
+    }
+  };
 
   // Filter Plants if no plant is selected, otherwise filter panels within the selected plant
   const displayPlants = PLANTS.filter(p => 
@@ -66,7 +88,10 @@ export default function PlantMapPage() {
   
   const displayPanels = selectedPlant?.panels.filter(p => 
     p.id.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  ).map(p => {
+    const isError = activeSimulations.some(sim => sim.plantName === selectedPlant.name && sim.panelId === p.id);
+    return isError ? { ...p, status: 'Critical', acKw: 0, dcKw: 0, eff: 0 } : p;
+  }) || [];
 
   return (
     <div className="flex flex-col gap-6 w-full pb-20">
@@ -79,12 +104,13 @@ export default function PlantMapPage() {
               <button 
                 onClick={() => setSelectedPlantId(null)} 
                 className="p-1.5 hover:bg-gray-100 rounded-lg text-secondary-text transition-colors"
+                title="Back to Map View"
               >
                 <ChevronLeft size={20} />
               </button>
             )}
             <h2 className="text-lg font-bold text-primary-text">
-              {selectedPlant ? `Plant Details: ${selectedPlant.name}` : "Interactive Plant Map - Tamil Nadu"}
+              {selectedPlant ? `Plant Panels: ${selectedPlant.name}` : "Interactive Plant Map - Tamil Nadu"}
             </h2>
           </div>
           
@@ -93,7 +119,7 @@ export default function PlantMapPage() {
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-secondary-text" />
               <input 
                 type="text" 
-                placeholder={selectedPlant ? "Search panels..." : "Search plants or location..."}
+                placeholder={selectedPlant ? "Search panels (e.g. PNL-01)..." : "Search plants or location..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-4 py-2 rounded-lg bg-surface/80 border border-border text-sm focus:outline-none focus:ring-1 focus:ring-accent w-full sm:w-64 transition-all placeholder-secondary-text/70"
@@ -114,32 +140,69 @@ export default function PlantMapPage() {
             <div className="relative w-full h-[500px]">
               <MapComponent 
                 plants={displayPlants} 
-                onSelectPlant={(id) => {
-                  setSelectedPlantId(id);
-                  setSearchQuery("");
-                }} 
+                onSelectPlant={handleSelectPlant} 
               />
             </div>
           ) : (
             // Show Panels for selected plant
             <div className="w-full max-w-5xl relative z-10 flex flex-col h-full">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full">
+              <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-blue-50/80 border border-blue-200/60 px-4 py-3 rounded-xl shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                    <MapPin size={16} />
+                  </div>
+                  <div>
+                    <div className="text-sm text-blue-950 font-bold">{selectedPlant.name}</div>
+                    <div className="text-xs text-blue-700 font-medium">{selectedPlant.panels.length} panels in this plant location</div>
+                  </div>
+                </div>
+                <div className="text-xs font-semibold text-blue-800 bg-white px-3 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1.5 shadow-2xs">
+                  <span>Click any panel to take dashboard to it</span>
+                  <ArrowRight size={14} className="text-blue-600" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full">
                 {displayPanels.map((panel) => (
                   <div 
                     key={panel.id}
-                    className="bg-white border-2 border-border shadow-sm p-4 rounded-xl flex flex-col items-center hover:border-accent hover:shadow-md transition-all cursor-pointer group"
+                    onClick={() => handleSelectPanelAndNavigate(panel.id)}
+                    className="bg-white border-2 border-border shadow-xs p-4 rounded-xl flex flex-col hover:border-accent hover:shadow-md transition-all cursor-pointer group hover:-translate-y-0.5 relative overflow-hidden"
+                    title={`Click to open ${panel.id} in Dashboard`}
                   >
-                    <div className={`w-4 h-4 rounded-full mb-3 shadow-sm ${
-                      panel.status === 'Normal' ? 'bg-success' : 
-                      panel.status === 'Warning' ? 'bg-warning' : 'bg-danger'
-                    }`}></div>
-                    <div className="font-bold text-primary-text">{panel.id}</div>
-                    <div className="text-xs font-medium text-secondary-text mt-1">{panel.acKw} kW AC</div>
-                    <div className="text-xs font-medium text-secondary-text">{panel.eff}% Eff</div>
+                    <div className="flex justify-between items-center w-full mb-2.5">
+                      <span className={`w-3 h-3 rounded-full shadow-xs ${
+                        panel.status === 'Normal' ? 'bg-success' : 
+                        panel.status === 'Warning' ? 'bg-warning' : 'bg-danger animate-pulse'
+                      }`}></span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        panel.status === 'Normal' ? 'bg-success/10 text-success' :
+                        panel.status === 'Warning' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'
+                      }`}>
+                        {panel.status}
+                      </span>
+                    </div>
+
+                    <div className="font-extrabold text-lg text-primary-text group-hover:text-accent-dark transition-colors flex items-center gap-1.5">
+                      <Zap size={16} className="text-amber-500" />
+                      {panel.id}
+                    </div>
+
+                    <div className="mt-2 space-y-0.5 text-xs">
+                      <div className="font-semibold text-primary-text">{panel.acKw} kW AC</div>
+                      <div className="text-secondary-text text-[11px]">{panel.eff}% Eff • {panel.temp}°C</div>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-border/60 flex items-center justify-between text-accent-dark font-bold text-[11px]">
+                      <span>Open in Dashboard</span>
+                      <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
+                    </div>
                   </div>
                 ))}
                 {displayPanels.length === 0 && (
-                  <div className="col-span-full text-center py-10 text-secondary-text font-medium">No panels match your search.</div>
+                  <div className="col-span-full text-center py-10 text-secondary-text font-medium bg-white rounded-xl border border-dashed border-border">
+                    No panels match "{searchQuery}" in {selectedPlant.name}
+                  </div>
                 )}
               </div>
             </div>

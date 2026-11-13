@@ -16,6 +16,23 @@ export type SimulationEvent = {
   resolved: boolean;
 };
 
+export type PlantInfo = {
+  name: string;
+  location: string;
+  panels: string[];
+};
+
+export type PanelData = {
+  id: string;
+  status: string;
+  acKw: number;
+  dcKw: number;
+  eff: number;
+  temp: number;
+  energyMwh: number;
+  pr: number;
+};
+
 interface SimulationContextType {
   activeSimulations: SimulationEvent[];
   triggerSimulation: (type: string) => void;
@@ -36,14 +53,22 @@ interface SimulationContextType {
   setFactoryLoad: (mw: number) => void;
   setBatteryCapacity: (mwh: number) => void;
   setSolarGeneration: (mw: number) => void;
+  plants: PlantInfo[];
+  selectedPlant: string;
+  setSelectedPlant: (plantName: string) => void;
+  selectedPanel: string;
+  setSelectedPanel: (panelId: string) => void;
+  currentPlantPanels: string[];
+  plantPanelCount: number;
+  selectedPanelData: PanelData | undefined;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
 
 const PLANTS = [
-  { name: 'ENECO Chennai', location: 'Chennai, TN', panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'] },
-  { name: 'ENECO Coimbatore', location: 'Coimbatore, TN', panels: ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'] },
-  { name: 'ENECO Madurai', location: 'Madurai, TN', panels: ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'] },
+  { name: 'ENERCO Chennai', location: 'Chennai, TN', panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04', 'PNL-10', 'PNL-11', 'PNL-12', 'PNL-13', 'PNL-14', 'PNL-15', 'PNL-16', 'PNL-17', 'PNL-18', 'PNL-19'] },
+  { name: 'ENERCO Coimbatore', location: 'Coimbatore, TN', panels: ['PNL-05', 'PNL-06', 'PNL-07', 'PNL-20', 'PNL-21', 'PNL-22', 'PNL-23', 'PNL-24', 'PNL-25', 'PNL-26', 'PNL-27', 'PNL-28', 'PNL-29'] },
+  { name: 'ENERCO Madurai', location: 'Madurai, TN', panels: ['PNL-08', 'PNL-09', 'PNL-30', 'PNL-31', 'PNL-32', 'PNL-33', 'PNL-34', 'PNL-35', 'PNL-36', 'PNL-37', 'PNL-38', 'PNL-39'] },
 ];
 
 export function SimulationProvider({ children }: { children: React.ReactNode }) {
@@ -69,6 +94,30 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
   const [pendingPermission, setPendingPermission] = useState<string | null>(null);
 
   const [notifications, setNotifications] = useState<any[]>(mockData.notifications);
+
+  const [selectedPlant, setSelectedPlantState] = useState<string>('ENERCO Chennai');
+  const [selectedPanel, setSelectedPanel] = useState<string>('PNL-01');
+
+  const currentPlant = PLANTS.find(p => p.name === selectedPlant) || PLANTS[0];
+  const currentPlantPanels = currentPlant.panels;
+  const plantPanelCount = currentPlantPanels.length;
+
+  const setSelectedPlant = (plantName: string) => {
+    setSelectedPlantState(plantName);
+    const plant = PLANTS.find(p => p.name === plantName) || PLANTS[0];
+    if (plant && !plant.panels.includes(selectedPanel)) {
+      setSelectedPanel(plant.panels[0]);
+    }
+  };
+
+  const selectedPanelData = React.useMemo(() => {
+    const base = mockData.panels.find(p => p.id === selectedPanel);
+    if (!base) return undefined;
+    const isError = activeSimulations.some(
+      sim => sim.plantName === selectedPlant && sim.panelId === selectedPanel
+    );
+    return isError ? { ...base, status: 'Critical', acKw: 0, dcKw: 0, eff: 0 } : base;
+  }, [selectedPanel, selectedPlant, activeSimulations]);
 
   useEffect(() => {
     // 1. Fetch real-time open-source forecast data from Open-Meteo
@@ -596,8 +645,16 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     denyAction,
     setFactoryLoad,
     setBatteryCapacity,
-    setSolarGeneration
-  }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission]);
+    setSolarGeneration,
+    plants: PLANTS,
+    selectedPlant,
+    setSelectedPlant,
+    selectedPanel,
+    setSelectedPanel,
+    currentPlantPanels,
+    plantPanelCount,
+    selectedPanelData
+  }), [activeSimulations, toastEvent, notifications, emsState, automationMode, timeString, pendingPermission, selectedPlant, selectedPanel, currentPlantPanels, plantPanelCount, selectedPanelData]);
 
   return (
     <SimulationContext.Provider value={contextValue}>

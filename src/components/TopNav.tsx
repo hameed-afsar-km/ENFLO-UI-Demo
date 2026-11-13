@@ -18,7 +18,7 @@ const NAV_ITEMS = [
 ];
 
 const SEARCH_DATA = [
-  { id: '1', title: 'ENECO MAIN', type: 'Solar Plant', path: '/' },
+  { id: '1', title: 'ENERCO MAIN', type: 'Solar Plant', path: '/' },
   { id: '2', title: 'XYZ', type: 'Solar Plant', path: '/plant-map' },
   { id: '3', title: 'ABC', type: 'Location', path: '/plant-map' },
   { id: '4', title: 'California, USA', type: 'Location', path: '/plant-map' },
@@ -134,7 +134,7 @@ export function TopNav() {
             E
           </div>
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-base md:text-lg tracking-tight whitespace-nowrap">ENECO Solar</span>
+            <span className="font-semibold text-base md:text-lg tracking-tight whitespace-nowrap">ENERCO Solar</span>
           </div>
         </div>
         
@@ -471,15 +471,15 @@ export function TopNav() {
                     onClick={() => {
                       const csvContent = "data:text/csv;charset=utf-8," 
                         + "Asset ID,Plant Name,Status,AC Power (kW),DC Power (kW),Efficiency (%),Temperature (°C)\n"
-                        + "PNL-01,ENECO Chennai,Normal,450.2,465.1,96.8,42.5\n"
-                        + "PNL-02,ENECO Chennai,Normal,448.9,463.8,96.7,43.1\n"
-                        + "PNL-03,ENECO Chennai,Warning,420.5,462.1,91.0,48.2\n"
-                        + "PNL-04,ENECO Chennai,Normal,451.0,466.0,96.7,41.9\n"
-                        + "PNL-05,ENECO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
+                        + "PNL-01,ENERCO Chennai,Normal,450.2,465.1,96.8,42.5\n"
+                        + "PNL-02,ENERCO Chennai,Normal,448.9,463.8,96.7,43.1\n"
+                        + "PNL-03,ENERCO Chennai,Warning,420.5,462.1,91.0,48.2\n"
+                        + "PNL-04,ENERCO Chennai,Normal,451.0,466.0,96.7,41.9\n"
+                        + "PNL-05,ENERCO Coimbatore,Critical,0.0,460.5,0.0,55.4\n";
                       const encodedUri = encodeURI(csvContent);
                       const link = document.createElement("a");
                       link.setAttribute("href", encodedUri);
-                      link.setAttribute("download", "enflo_asset_report.csv");
+                      link.setAttribute("download", "enerco_asset_report.csv");
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);

@@ -12,17 +12,17 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 const PLANTS = [
   {
     id: 'PL-01',
-    name: 'ENECO Chennai',
+    name: 'ENERCO Chennai',
     panels: ['PNL-01', 'PNL-02', 'PNL-03', 'PNL-04'].map((id, i) => ({ ...mockData.panels[i], id })),
   },
   {
     id: 'PL-02',
-    name: 'ENECO Coimbatore',
+    name: 'ENERCO Coimbatore',
     panels: ['PNL-05', 'PNL-06', 'PNL-07'].map((id, i) => ({ ...mockData.panels[i + 4], id })),
   },
   {
     id: 'PL-03',
-    name: 'ENECO Madurai',
+    name: 'ENERCO Madurai',
     panels: ['PNL-08', 'PNL-09'].map((id, i) => ({ ...mockData.panels[i % mockData.panels.length], id })),
   }
 ];

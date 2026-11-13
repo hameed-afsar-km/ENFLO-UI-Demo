@@ -3,11 +3,30 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { mockData } from '@/data/mock';
-import { Settings2, ChevronDown, CalendarDays, X, Activity, Zap, ActivitySquare, AlertTriangle, Map } from 'lucide-react';
+import { useSimulation } from '@/context/SimulationContext';
+import { Settings2, ChevronDown, CalendarDays, X, Activity, Zap, ActivitySquare, AlertTriangle, Map, MapPin } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 export function PlantStatusHeader() {
-  const { status, panelsOnline, totalPanels, date, time } = mockData.plantStatus;
+  const { status, date, time } = mockData.plantStatus;
+  const { 
+    plants, 
+    selectedPlant, 
+    setSelectedPlant, 
+    selectedPanel, 
+    setSelectedPanel, 
+    currentPlantPanels, 
+    plantPanelCount, 
+    selectedPanelData, 
+    activeSimulations 
+  } = useSimulation();
+
+  const offlineInThisPlant = activeSimulations.filter(
+    (sim) => sim.plantName === selectedPlant && currentPlantPanels.includes(sim.panelId)
+  ).length;
+  const onlineInThisPlant = Math.max(0, plantPanelCount - offlineInThisPlant);
+  const plantStatusThisPlant = offlineInThisPlant > 0 ? "Derated" : status;
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeMetric, setActiveMetric] = useState<'power' | 'efficiency' | 'voltage' | 'errors'>('power');
   const [selectedDate, setSelectedDate] = useState("2026-10-01");
@@ -51,20 +70,80 @@ export function PlantStatusHeader() {
 
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between w-full mb-6 relative z-40">
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
-          <h1 className="text-3xl font-bold tracking-tight">ENECO SOLAR</h1>
+      <div className="flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+          <h1 className="text-3xl font-extrabold tracking-tight text-primary-text">ENERCO SOLAR</h1>
+          <span className="hidden sm:inline text-border font-light">|</span>
+          <span className="text-xs font-bold text-secondary-text uppercase tracking-wider">Fleet Telemetry Dashboard</span>
         </div>
-        <div className="flex items-center flex-wrap gap-4 text-sm font-medium text-secondary-text">
-          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-full border border-border shadow-sm">
-            <span className={`status-dot ${status === 'Operational' ? 'status-dot-healthy' : 'status-dot-warning'}`}></span>
-            <span className="text-primary-text">Plant status: {status}</span>
+
+        {/* Selected Plant & Panel Controls Bar */}
+        <div className="flex items-center flex-wrap gap-2.5 text-sm font-medium">
+          
+          {/* 1. Selected Plant Selector */}
+          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
+            <MapPin size={15} className="text-blue-500 shrink-0" />
+            <span className="text-xs font-semibold text-secondary-text">Plant:</span>
+            <select
+              value={selectedPlant}
+              onChange={(e) => setSelectedPlant(e.target.value)}
+              className="font-bold text-primary-text bg-transparent outline-none cursor-pointer text-sm pr-1"
+            >
+              {plants.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="bg-surface px-3 py-1.5 rounded-full border border-border shadow-sm">
-            {panelsOnline}/{totalPanels} Panels online
+
+          {/* 2. Selected Panel Selector (only panels for this specific plant) */}
+          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
+            <Zap size={15} className="text-amber-500 shrink-0" />
+            <span className="text-xs font-semibold text-secondary-text">Selected Panel:</span>
+            <select
+              value={selectedPanel}
+              onChange={(e) => setSelectedPanel(e.target.value)}
+              className="font-bold text-primary-text bg-transparent outline-none cursor-pointer text-sm pr-1"
+            >
+              {currentPlantPanels.map((pId) => (
+                <option key={pId} value={pId}>
+                  {pId}
+                </option>
+              ))}
+            </select>
+            {selectedPanelData && (
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ml-0.5 ${
+                selectedPanelData.status === 'Critical' 
+                  ? 'bg-danger/10 text-danger border border-danger/20' 
+                  : selectedPanelData.status === 'Warning'
+                  ? 'bg-warning/10 text-warning border border-warning/20'
+                  : 'bg-success/10 text-success border border-success/20'
+              }`}>
+                {selectedPanelData.status} • {selectedPanelData.acKw} kW
+              </span>
+            )}
           </div>
-          <Link href="/plant-map" className="inline-flex w-max items-center gap-1.5 px-3 py-1.5 bg-accent/10 text-accent-dark hover:bg-accent/20 rounded-full text-sm font-bold border border-accent/20 transition-colors">
-            <Map size={16} /> Switch Plant
+
+          {/* 3. Number of Panels in THIS specific plant (not every panel) */}
+          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
+            <span className={`status-dot ${offlineInThisPlant === 0 ? 'status-dot-healthy' : 'status-dot-warning'}`}></span>
+            <span className="text-xs font-semibold text-secondary-text">Panels in Plant:</span>
+            <span className="font-bold text-primary-text">{onlineInThisPlant}/{plantPanelCount}</span>
+            <span className="text-[11px] text-secondary-text">online ({selectedPlant.replace('ENERCO ', '')})</span>
+          </div>
+
+          {/* 4. Plant status */}
+          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
+            <span className="text-xs font-semibold text-secondary-text">Status:</span>
+            <span className={`text-xs font-bold ${plantStatusThisPlant === 'Operational' ? 'text-success' : 'text-warning'}`}>
+              {plantStatusThisPlant}
+            </span>
+          </div>
+
+          {/* Map Link */}
+          <Link href="/plant-map" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 text-accent-dark hover:bg-accent/20 rounded-xl text-xs font-bold border border-accent/20 transition-colors">
+            <Map size={14} /> Full Map
           </Link>
         </div>
       </div>

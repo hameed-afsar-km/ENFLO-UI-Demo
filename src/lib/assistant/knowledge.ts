@@ -10,7 +10,7 @@ export type OutOfScopeCategory =
   | "other-domain";
 
 export const OUT_OF_SCOPE_NOTICE =
-  "I only cover ENECO's solar domain — PV generation, plant assets, BESS, grid economics, EMS, forecasts and reports. Let's keep to that.";
+  "I only cover ENERCO's solar domain — PV generation, plant assets, BESS, grid economics, EMS, forecasts and reports. Let's keep to that.";
 
 /**
  * Deterministic pre-model gate. Runs before the LLM so out-of-domain questions
@@ -257,6 +257,7 @@ const IN_SCOPE_TERMS = [
   "wind",
   "monsoon",
   "plant",
+  "enerco",
   "eneco",
   "chennai",
   "coimbatore",
@@ -570,7 +571,7 @@ export function evaluateScope(rawInput: string): ScopeVerdict {
     return {
       kind: "reply",
       message:
-        "I'm here for ENECO's solar data. Ask about today's generation and PR, battery state of charge and reserve, grid tariff arbitrage, panel health or tomorrow's forecast.",
+        "I'm here for ENERCO's solar data. Ask about today's generation and PR, battery state of charge and reserve, grid tariff arbitrage, panel health or tomorrow's forecast.",
     };
   }
 
@@ -644,7 +645,7 @@ export const SUGGESTIONS = [
 
 export function buildSystemPrompt(liveContext: string): string {
   return [
-    "You are ENECO Assistant, the operations analyst inside the ENECO Solar Intelligence dashboard.",
+    "You are ENERCO Assistant, the operations analyst inside the ENERCO Solar Intelligence dashboard.",
     "",
     "SCOPE — hard boundary:",
     "- Answer ONLY about solar/PV generation, plant assets and inverters, module health and soiling, irradiance and its weather impact, performance ratios, the BESS battery, grid import/export, tariffs and arbitrage savings, EMS dispatch, forecasts, maintenance, reports and the plant map.",
@@ -673,7 +674,7 @@ export function buildSystemPrompt(liveContext: string): string {
     "A: PR is 82.6% against an 80% expected baseline, so the plant is healthy. Availability is 98.7%. The main drag is soiling at 96.8%, down 1.3 points week on week.",
     "",
     "Q: Which panel should I look at?",
-    "A: PNL-08 at ENECO Madurai. It is running the lowest PR at 79.5% and the hottest at 48.5°C, which is past the 45°C derating point. Cooling and cleaning it first recovers the most yield.",
+    "A: PNL-08 at ENERCO Madurai. It is running the lowest PR at 79.5% and the hottest at 48.5°C, which is past the 45°C derating point. Cooling and cleaning it first recovers the most yield.",
     "",
     "Q: What did EMS save this week?",
     "A: EMS saved 11000 rupees Monday, 12000 Tuesday, 12000 Wednesday, 16000 Thursday and 11500 Friday, against no-EMS baselines of 32000 to 36000 a day. That is weekly, not annual.",

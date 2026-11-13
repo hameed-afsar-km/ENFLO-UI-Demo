@@ -1,6 +1,6 @@
-# ⚡ ENFLO Energy Management System (EMS) & AI Simulator
+# ⚡ ENERCO Energy Management System (EMS) & AI Simulator
 
-ENFLO is a next-generation Energy Management System (EMS) demonstration interface built with **Next.js**, **React**, and **TypeScript**. It simulates the real-time monitoring, management, and predictive optimization of distributed energy assets (Solar PV arrays, Battery Energy Storage Systems, and Factory Loads) across multiple geographical sites. 
+ENERCO is a next-generation Energy Management System (EMS) demonstration interface built with **Next.js**, **React**, and **TypeScript**. It simulates the real-time monitoring, management, and predictive optimization of distributed energy assets (Solar PV arrays, Battery Energy Storage Systems, and Factory Loads) across multiple geographical sites. 
 
 The crown jewel of this application is its **Context-Aware AI Assistant**, which uses live telemetry data to answer complex operational queries and generate dynamic scenario simulations (What-If Analysis).
 

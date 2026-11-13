@@ -146,7 +146,7 @@ export function ChatbotWidget() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        aria-label="Open ENECO Assistant"
+        aria-label="Open ENERCO Assistant"
         className={cn(
           "fixed bottom-6 right-6 w-14 h-14 bg-accent-dark text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 hover:shadow-xl transition-all duration-300 z-50 cursor-pointer",
           isOpen ? "scale-0 opacity-0 pointer-events-none" : "scale-100 opacity-100",
@@ -173,7 +173,7 @@ export function ChatbotWidget() {
           <div className="flex items-center gap-2 min-w-0">
             <Bot size={20} className="shrink-0" />
             <div className="min-w-0">
-              <div className="font-bold text-sm leading-tight truncate">ENECO Assistant</div>
+              <div className="font-bold text-sm leading-tight truncate">ENERCO Assistant</div>
               <div className="flex items-center gap-2 mt-0.5">
                 <div className="text-[10px] font-medium opacity-80 truncate max-w-[120px]" title={model || (provider === "groq" ? "Cloud AI Ready" : "Local AI Ready")}>
                   {model ? model : (provider === "groq" ? "Cloud AI Ready" : "Local AI Ready")}
@@ -225,7 +225,7 @@ export function ChatbotWidget() {
           {isEmpty ? (
             <div className="flex flex-col gap-3 py-2">
               <div className="px-3 py-2 rounded-2xl rounded-bl-sm bg-white border border-border text-sm shadow-sm text-primary-text">
-                Hello! I am the ENECO Assistant. I answer only from live plant data — generation, PR and soiling, battery health, grid tariffs and savings, forecasts, events and reports.
+                Hello! I am the ENERCO Assistant. I answer only from live plant data — generation, PR and soiling, battery health, grid tariffs and savings, forecasts, events and reports.
               </div>
               <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 text-[11px] text-amber-800">
                 Out of subject questions — code, general maths, trivia — I decline on purpose.
