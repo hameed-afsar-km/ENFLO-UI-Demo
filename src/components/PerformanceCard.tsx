@@ -16,8 +16,9 @@ export function PerformanceCard() {
           </div>
           <div className="tooltip-trigger">
             <HelpCircle size={18} />
-            <div className="tooltip-content">
-              <strong>Answers:</strong> Is the solar plant performing well according to expected yields?
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Plant Performance Indices:</strong>
+              Core efficiency KPIs: Performance Ratio (PR), Energy Performance Index (EPI), plant availability %, and module soiling degradation ratio.
             </div>
           </div>
         </div>

@@ -42,7 +42,16 @@ export function EnergyFlowCard() {
   return (
     <div className="solid-card p-5 h-full flex flex-col group">
       <div className="flex justify-between items-start mb-2">
-        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Energy Flow</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Energy Flow</h2>
+          <div className="tooltip-trigger">
+            <HelpCircle size={16} />
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Live Power Flow:</strong>
+              Shows real-time energy distribution in Megawatts (MW) from solar generation directly to factory load, BESS battery charging/discharging, and grid import/export.
+            </div>
+          </div>
+        </div>
         <div className="flex gap-2">
           {isAiActive && (
             <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-lg border border-blue-200 flex items-center gap-1 shadow-sm">

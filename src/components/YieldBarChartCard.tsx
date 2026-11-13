@@ -23,8 +23,9 @@ export function YieldBarChartCard() {
         </h2>
         <div className="tooltip-trigger">
           <HelpCircle size={18} />
-          <div className="tooltip-content w-48">
-            <strong>Answers:</strong> How much energy did we produce daily compared to expectations?
+          <div className="tooltip-content w-60">
+            <strong className="block mb-1 text-white font-bold">Weekly Solar Yield:</strong>
+            Compares actual daily Megawatt-hour (MWh) generation against baseline meteorological forecast to spot generation shortfalls.
           </div>
         </div>
       </div>

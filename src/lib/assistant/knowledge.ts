@@ -631,6 +631,7 @@ export const GLOSSARY: Array<[string, string]> = [
   ["RTE (round-trip efficiency)", "energy returned per unit stored. 89-92% is normal for Li-ion BESS."],
   ["Self-consumption ratio", "share of generation used on site instead of exported or dumped."],
   ["Arbitrage", "charging at low tariff and discharging into the load at peak tariff."],
+  ["Dynamic Grid Tariff", "grid tariff is inversely indexed to solar supply (merit-order effect). Abundant solar supply (>2 MW) lowers dynamic tariff to ₹3.80-₹4.80/kWh; low or zero solar pushes tariffs to peak ₹9.80/kWh."],
   ["Demand limit", "contracted maximum grid import. Breaching it triggers heavy penalties."],
   ["Derating", "deliberately capping output, usually because a module is too hot."],
 ];

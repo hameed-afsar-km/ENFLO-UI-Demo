@@ -19,8 +19,9 @@ export function DistributionPieChartCard() {
         </h2>
         <div className="tooltip-trigger">
           <HelpCircle size={18} />
-          <div className="tooltip-content w-48">
-            <strong>Answers:</strong> Where is the produced energy being consumed?
+          <div className="tooltip-content w-60">
+            <strong className="block mb-1 text-white font-bold">Energy Destination:</strong>
+            Breakdown of total solar generated: portion self-consumed on-site by factory, stored in BESS batteries, or exported to the grid.
           </div>
         </div>
       </div>

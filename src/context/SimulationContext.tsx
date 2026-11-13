@@ -33,6 +33,61 @@ export type PanelData = {
   pr: number;
 };
 
+/**
+ * Calculates dynamic grid tariff with respect to solar generation (supply).
+ * In an electricity grid & real-time market:
+ * - High solar supply (> 2.0 MW): Abundant green energy lowers net grid demand and wholesale clearing price -> ₹3.80 - ₹4.50/kWh (Off-Peak)
+ * - Moderate solar supply (0.8 - 2.0 MW): Standard daytime generation -> ₹5.00 - ₹6.50/kWh (Standard Rate)
+ * - Low solar supply (0.1 - 0.8 MW): Intermediate peaker generators ramp up -> ₹7.00 - ₹8.50/kWh (High Rate)
+ * - Zero solar supply (<= 0.05 MW / night / thick cloud / outage): Expensive gas/thermal peakers run -> ₹9.40 - ₹9.80/kWh (Peak Rate)
+ */
+export function calculateDynamicTariff(solarMw: number): number {
+  const s = Math.max(0, solarMw);
+  if (s <= 0.02) return 9.80; // Zero solar: full peak tariff
+  
+  // Nominal peak solar capacity ~2.5 MW
+  const maxSolar = 2.5;
+  const ratio = Math.min(1.0, s / maxSolar);
+  // Non-linear decay: smooth merit-order curve from 9.80 down to 3.80
+  const maxDiscount = 6.00;
+  const tariff = 9.80 - (maxDiscount * Math.pow(ratio, 0.70));
+  return Number(Math.max(3.80, Math.min(9.80, tariff)).toFixed(2));
+}
+
+export function getTariffTier(tariff: number): {
+  tier: "off-peak" | "standard" | "peak";
+  label: string;
+  badgeClass: string;
+  color: string;
+  description: string;
+} {
+  if (tariff <= 5.0) {
+    return {
+      tier: "off-peak",
+      label: "Off-Peak (Solar Valley)",
+      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      color: "#10b981",
+      description: "High solar supply pushing grid tariff down"
+    };
+  }
+  if (tariff <= 7.2) {
+    return {
+      tier: "standard",
+      label: "Standard Rate",
+      badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+      color: "#3b82f6",
+      description: "Moderate solar generation balancing grid load"
+    };
+  }
+  return {
+    tier: "peak",
+    label: "Peak Rate (Low/No Solar)",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "#f43f5e",
+    description: "Low or zero solar supply; expensive peaker plants online"
+  };
+}
+
 interface SimulationContextType {
   activeSimulations: SimulationEvent[];
   triggerSimulation: (type: string) => void;
@@ -53,6 +108,7 @@ interface SimulationContextType {
   setFactoryLoad: (mw: number) => void;
   setBatteryCapacity: (mwh: number) => void;
   setSolarGeneration: (mw: number) => void;
+  calculateDynamicTariff: (solarMw: number) => number;
   plants: PlantInfo[];
   selectedPlant: string;
   setSelectedPlant: (plantName: string) => void;
@@ -82,7 +138,10 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     battery: { ...mockData.battery },
     aiDecision: { ...mockData.aiDecision },
     emsRecommendations: [...mockData.emsRecommendations],
-    tariffs: { ...mockData.tariffs },
+    tariffs: { 
+      ...mockData.tariffs,
+      current: calculateDynamicTariff(mockData.currentPower.solarGenerationMw),
+    },
     costProjection: { ...mockData.costProjection },
     predictedEvents: [...mockData.predictedEvents],
     forecastTomorrow: { ...mockData.forecastTomorrow }
@@ -286,10 +345,12 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.currentPower.batteryChargeMw = 1.55;
       newEmsState.currentPower.toBatteryMw = 1.55;
       newEmsState.battery.state = "Charging";
+      const dynTariff = calculateDynamicTariff(2.80);
+      newEmsState.tariffs.current = dynTariff;
       newEmsState.aiDecision = {
         action: "Charging Battery from Surplus",
-        reason: "Solar generation is 1.55 MW above current demand. Storing surplus before evening peak.",
-        expectedImpact: "Grid import avoided later. Estimated evening savings: ₹4,650."
+        reason: `High solar supply (2.80 MW) has pushed dynamic grid tariff down to ₹${dynTariff.toFixed(2)}/kWh. Pre-charging battery with ultra-low cost solar energy before evening peak.`,
+        expectedImpact: "Avoids expensive grid import later. Estimated evening savings: ₹4,650."
       };
     } else if (type === 'Solar Deficit') {
       message = `Solar generation dropped. Discharging battery to cover factory load.`;
@@ -298,14 +359,17 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.currentPower.directToFactoryMw = 0.40;
       newEmsState.currentPower.batteryDischargeMw = 1.80;
       newEmsState.battery.state = "Discharging";
+      const dynTariff = calculateDynamicTariff(0.40);
+      newEmsState.tariffs.current = dynTariff;
       newEmsState.aiDecision = {
         action: "Discharging Battery",
-        reason: "Solar deficit of 1.80 MW detected. Grid tariff is ₹4.80/kWh, discharging battery is more economical.",
-        expectedImpact: "Grid import reduced by 1.80 MW. Savings: ₹8,640/hr."
+        reason: `Solar supply dropped to 0.40 MW, causing dynamic grid tariff to surge to ₹${dynTariff.toFixed(2)}/kWh. Discharging battery to avoid importing high-cost grid electricity.`,
+        expectedImpact: `Grid import reduced by 1.80 MW. Savings: ₹${(1.80 * dynTariff * 1000).toFixed(0)}/hr.`
       };
     } else if (type === 'Peak Tariff') {
       message = `Peak tariff period started. Maximizing battery discharge.`;
-      newEmsState.tariffs.current = 9.40;
+      const dynTariff = calculateDynamicTariff(0.00);
+      newEmsState.tariffs.current = dynTariff;
       newEmsState.currentPower.solarGenerationMw = 0.00; // Corrected to 0 for night time
       newEmsState.currentPower.factoryLoadMw = 2.00;
       newEmsState.currentPower.directToFactoryMw = 0.00;
@@ -313,23 +377,25 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.battery.state = "Discharging";
       newEmsState.aiDecision = {
         action: "Peak Shifting via Battery",
-        reason: "Grid tariff is currently HIGH (₹9.40/kWh). Discharging battery to minimize grid import cost.",
-        expectedImpact: "Grid import avoided. Peak savings: ₹18,800/hr."
+        reason: `Zero solar generation available. Dynamic grid tariff is at PEAK rate (₹${dynTariff.toFixed(2)}/kWh). Discharging battery at 2.00 MW to eliminate grid purchase.`,
+        expectedImpact: `Full load covered by battery. Peak savings: ₹${(2.00 * dynTariff * 1000).toFixed(0)}/hr.`
       };
     } else if (type === 'Upcoming Peak') {
       message = `High tariff approaching in 30 mins. Preserving battery reserve.`;
-      newEmsState.tariffs.current = 4.80;
-      newEmsState.battery.state = "Reserve";
       const [h] = timeStr.split(':').map(Number);
       const isNight = h >= 19 || h < 6;
-      newEmsState.currentPower.solarGenerationMw = isNight ? 0.0 : 0.8;
+      const solarVal = isNight ? 0.0 : 0.8;
+      const dynTariff = calculateDynamicTariff(solarVal);
+      newEmsState.tariffs.current = dynTariff;
+      newEmsState.battery.state = "Reserve";
+      newEmsState.currentPower.solarGenerationMw = solarVal;
       newEmsState.currentPower.factoryLoadMw = 2.0;
-      newEmsState.currentPower.directToFactoryMw = isNight ? 0.0 : 0.8;
+      newEmsState.currentPower.directToFactoryMw = solarVal;
       newEmsState.currentPower.gridImportMw = isNight ? 2.0 : 1.2;
       newEmsState.aiDecision = {
         action: "Preserve Battery Reserve",
-        reason: "Peak tariff (₹9.40/kWh) begins in 30 mins. Holding current SoC to use during peak hours instead of now.",
-        expectedImpact: "Cost shifted to cheaper grid period. Optimization value: ₹5,520."
+        reason: `Solar supply is diminishing (${solarVal.toFixed(2)} MW). Dynamic grid tariff will soon surge to peak (₹9.80/kWh). Holding current battery SoC to discharge during peak hours.`,
+        expectedImpact: "Energy preserved for peak tariff arbitrage. Optimization value: ₹5,520."
       };
     } else if (type === 'Battery Full') {
       message = `Battery reached max capacity. Exporting surplus to grid.`;
@@ -341,10 +407,12 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.currentPower.surplusMw = 1.5;
       newEmsState.currentPower.toGridMw = 1.5;
       newEmsState.currentPower.gridExportMw = 1.5;
+      const dynTariff = calculateDynamicTariff(2.5);
+      newEmsState.tariffs.current = dynTariff;
       newEmsState.aiDecision = {
         action: "Exporting to Grid",
-        reason: "Battery is at 100% capacity. Redirecting 1.50 MW solar surplus to the grid for revenue.",
-        expectedImpact: "Grid export revenue generated: ₹7,200/hr."
+        reason: `Battery at 100% SoC. Abundant solar supply (2.50 MW) yields dynamic feed-in tariff of ₹${dynTariff.toFixed(2)}/kWh. Exporting 1.50 MW surplus to grid for revenue.`,
+        expectedImpact: `Grid export revenue generated: ₹${(1.50 * dynTariff * 1000).toFixed(0)}/hr.`
       };
     } else if (type === 'Battery Reserve') {
       message = `Battery hit minimum reserve limit. Switching to grid.`;
@@ -353,19 +421,23 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       
       const [h] = timeStr.split(':').map(Number);
       const isNight = h >= 19 || h < 6;
-      newEmsState.currentPower.solarGenerationMw = isNight ? 0.0 : 0.4;
+      const solarVal = isNight ? 0.0 : 0.4;
+      newEmsState.currentPower.solarGenerationMw = solarVal;
       newEmsState.currentPower.factoryLoadMw = 1.8;
-      newEmsState.currentPower.directToFactoryMw = isNight ? 0.0 : 0.4;
+      newEmsState.currentPower.directToFactoryMw = solarVal;
       newEmsState.currentPower.gridImportMw = isNight ? 1.8 : 1.4;
+      const dynTariff = calculateDynamicTariff(solarVal);
+      newEmsState.tariffs.current = dynTariff;
       
       newEmsState.aiDecision = {
         action: "Switched to Grid Import",
-        reason: "Battery reached minimum reserve limit (25%). Switched to grid to protect battery health.",
-        expectedImpact: "Battery degraded avoided. Safety margin maintained."
+        reason: `Battery reached minimum reserve limit (25%). Solar supply is low (${solarVal.toFixed(2)} MW) with dynamic tariff at ₹${dynTariff.toFixed(2)}/kWh. Importing grid baseload to preserve battery life.`,
+        expectedImpact: "Battery degradation avoided. Critical factory loads sustained."
       };
     } else if (type === 'Storm Approaching') {
       message = `Storm forecasted for tomorrow. Pre-charging battery from grid at off-peak rates.`;
-      newEmsState.tariffs.current = 4.80;
+      const dynTariff = calculateDynamicTariff(1.82); // off-peak solar window rate
+      newEmsState.tariffs.current = dynTariff;
       newEmsState.battery.state = "Charging";
       newEmsState.currentPower.solarGenerationMw = 0.00;
       newEmsState.currentPower.directToFactoryMw = 0.00;
@@ -374,8 +446,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
       newEmsState.currentPower.gridImportMw = 2.70;
       newEmsState.aiDecision = {
         action: "Pre-charging before Storm",
-        reason: "Weather forecast predicts heavy rain tomorrow. Charging battery now at low tariff (₹4.80) to avoid importing expensive peak power tomorrow.",
-        expectedImpact: "Grid import avoided tomorrow. Estimated savings: ₹8,000."
+        reason: `Weather radar predicts zero solar generation tomorrow, which will trigger continuous dynamic peak tariffs (₹9.80/kWh). Pre-charging BESS now during dynamic off-peak window.`,
+        expectedImpact: "Peak tariff exposure avoided tomorrow. Estimated savings: ₹8,000."
       };
     }
 
@@ -475,22 +547,25 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
               
               if (h >= 19 || h < 6) {
                 newSolarMw = 0.00; // Physics: no solar at night
+              } else {
+                // Natural diurnal solar supply curve across daylight hours (6:00 to 19:00)
+                const hourFrac = h + parseInt(m) / 60;
+                const peakHour = 13.0; // peak around 1:00 PM
+                const spread = 3.2;
+                const sunFactor = Math.max(0, Math.exp(-Math.pow(hourFrac - peakHour, 2) / (2 * spread * spread)));
+                newSolarMw = Number((2.8 * sunFactor).toFixed(2));
               }
               
               const isGridOutage = prev.aiDecision?.action === "Islanding Mode Activated";
               const updated = recalculatePowerFlows(prev, newSolarMw, newLoadMw, prev.battery.ratedCapacityMwh, isGridOutage);
               
-              if (h >= 18 && h < 23) updated.tariffs.current = 9.40;
-              else if (h >= 14 && h < 18) updated.tariffs.current = 4.80;
-              else if (h >= 23 || h < 10) updated.tariffs.current = 5.10;
-              else updated.tariffs.current = 5.20;
-              
               // Only overwrite AI decision if not in a critical state
               if (!isGridOutage && !prev.battery.state.includes("Idle")) {
+                const dynTier = getTariffTier(updated.tariffs.current);
                 updated.aiDecision = {
-                  action: "Normal Operations",
-                  reason: "Standard power flow balancing based on current load and tariff schedule.",
-                  expectedImpact: "System maintaining nominal efficiency."
+                  action: dynTier.tier === 'off-peak' ? "Solar Arbitrage / Pre-charging" : dynTier.tier === 'peak' ? "Peak Tariff Shifting" : "Standard Load Balancing",
+                  reason: `Solar supply at ${newSolarMw.toFixed(2)} MW drives dynamic grid tariff to ₹${updated.tariffs.current.toFixed(2)}/kWh (${dynTier.label}). Power flows automatically optimized.`,
+                  expectedImpact: "Continuous economic dispatch optimization active."
                 };
               }
               
@@ -581,6 +656,8 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     const selfConsumed = directToFactoryMw + batteryDischargeMw;
     const selfConsumptionRatio = totalConsumption > 0 ? Math.min(100, Math.round((selfConsumed / totalConsumption) * 100)) : 100;
 
+    const dynamicTariff = calculateDynamicTariff(solarMw);
+
     return {
       ...prev,
       battery: {
@@ -602,6 +679,10 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
         gridExportMw,
         surplusMw,
         selfConsumptionRatio
+      },
+      tariffs: {
+        ...prev.tariffs,
+        current: dynamicTariff,
       }
     };
   };
@@ -646,6 +727,7 @@ export function SimulationProvider({ children }: { children: React.ReactNode }) 
     setFactoryLoad,
     setBatteryCapacity,
     setSolarGeneration,
+    calculateDynamicTariff,
     plants: PLANTS,
     selectedPlant,
     setSelectedPlant,

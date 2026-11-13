@@ -40,14 +40,14 @@ export default function Dashboard() {
         </div>
         
         <div className="md:col-span-6 lg:col-span-3 flex flex-col">
-          <BatteryDetailCard />
+          <TariffTimelineCard />
         </div>
         
         <div className="md:col-span-6 lg:col-span-3 flex flex-col gap-6">
-          <div className="flex-1">
-             <TariffTimelineCard />
+          <div className="flex-1 min-h-0">
+             <BatteryDetailCard />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-h-0">
              <CostAnalysisCard />
           </div>
         </div>

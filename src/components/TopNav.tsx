@@ -333,9 +333,14 @@ export function TopNav() {
                   </div>
                   
                   <div className="mb-4 px-1">
-                    <div className="flex justify-between text-xs font-bold text-gray-600 mb-2">
-                      <span>Solar Generation</span>
-                      <span>{emsState.currentPower.solarGenerationMw.toFixed(2)} MW</span>
+                    <div className="flex justify-between items-center text-xs font-bold text-gray-600 mb-2">
+                      <span>Solar Generation (Supply)</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" title="Dynamic grid tariff indexed to solar supply">
+                          Dynamic: ₹{emsState.tariffs.current.toFixed(2)}/kWh
+                        </span>
+                        <span>{emsState.currentPower.solarGenerationMw.toFixed(2)} MW</span>
+                      </div>
                     </div>
                     <input 
                       type="range" 
@@ -346,6 +351,10 @@ export function TopNav() {
                       onChange={(e) => setSolarGeneration(parseFloat(e.target.value))}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
                     />
+                    <div className="flex justify-between text-[10px] text-gray-400 mt-1 font-medium">
+                      <span>0 MW (Peak ₹9.80)</span>
+                      <span>2.5+ MW (Valley ₹3.80)</span>
+                    </div>
                   </div>
                   
                   <div className="mb-4 px-1">

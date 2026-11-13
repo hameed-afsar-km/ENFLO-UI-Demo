@@ -11,9 +11,18 @@ export function EmsOptimizerCard() {
   return (
     <div className="solid-card p-6 flex flex-col h-full group bg-gradient-to-br from-surface to-[#f8fafc]">
       <div className="flex justify-between items-start mb-5">
-        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-          <BrainCircuit size={18} className="text-blue-500" /> AI Decision Engine
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <BrainCircuit size={18} className="text-blue-500" /> AI Decision Engine
+          </h2>
+          <div className="tooltip-trigger">
+            <HelpCircle size={16} />
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Autonomous Dispatch Engine:</strong>
+              Continuously balances live solar generation, battery charge/discharge state, and dynamic grid tariffs to minimize electricity bills and prevent blackouts.
+            </div>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <select 
              value={automationMode} 

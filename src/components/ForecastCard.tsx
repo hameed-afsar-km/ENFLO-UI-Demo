@@ -17,8 +17,9 @@ export function ForecastCard() {
         <h2 className="text-sm font-bold text-secondary-text uppercase tracking-wider">Energy Forecast</h2>
         <div className="tooltip-trigger">
           <HelpCircle size={18} />
-          <div className="tooltip-content w-56">
-            <strong>Answers:</strong> What will tomorrow's generation and demand be?
+          <div className="tooltip-content w-64">
+            <strong className="block mb-1 text-white font-bold">24-Hour Forecast Engine:</strong>
+            Predicts tomorrow's PV solar generation and factory electricity demand using meteorological irradiance models and historical consumption profiles.
           </div>
         </div>
       </div>

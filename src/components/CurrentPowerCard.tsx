@@ -20,8 +20,9 @@ export function CurrentPowerCard() {
           <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Power Overview</h2>
           <div className="tooltip-trigger">
             <HelpCircle size={18} />
-            <div className="tooltip-content">
-              <strong>Answers:</strong> How much solar is being generated and what are the main loads?
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Live Power Telemetry:</strong>
+              Instantaneous power readings: total solar PV output (MW), active factory demand, battery State of Charge (SoC), and dynamic grid tariff.
             </div>
           </div>
         </div>
@@ -57,7 +58,16 @@ export function CurrentPowerCard() {
           <div className="bg-white/80 p-4 rounded-xl border border-gray-100 shadow-sm relative">
             <div className="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
               <span className="flex items-center gap-1"><PlugZap size={12}/> Grid</span>
-              <span className="text-[9px] bg-blue-50 text-blue-600 px-1 py-0.5 rounded border border-blue-100">₹{currentTariff.toFixed(2)}/kWh</span>
+              <span 
+                className={`text-[9px] font-bold px-1.5 py-0.5 rounded border transition-colors ${
+                  currentTariff <= 5.0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  currentTariff <= 7.2 ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  'bg-rose-50 text-rose-700 border-rose-200'
+                }`}
+                title="Dynamic Grid Tariff (Solar-indexed)"
+              >
+                ₹{currentTariff.toFixed(2)}/kWh
+              </span>
             </div>
             {gridExportMw > 0 ? (
               <div className="text-xl lg:text-2xl font-bold text-orange-500 flex items-center gap-1">

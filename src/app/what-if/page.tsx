@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, Battery, Sun, Zap, Info, ArrowLeft, Download, RefreshCw, IndianRupee } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
-import { useSimulation } from '@/context/SimulationContext';
+import { useSimulation, calculateDynamicTariff } from '@/context/SimulationContext';
 import Link from 'next/link';
 
 export default function WhatIfPage() {
@@ -14,18 +14,20 @@ export default function WhatIfPage() {
   const [loadMw, setLoadMw] = useState(2.0); // base load
   
   const results = useMemo(() => {
-    // Heuristics for the what-if impact
+    // Heuristics for the what-if impact with dynamic solar tariff
     const baseBattery = 2.0;
     const baseSolar = 2.5;
-    const baseGridTariff = 9.4; // peak tariff
+    const peakGridTariff = 9.80; // peak tariff at zero solar
+    const dynamicSolarTariff = calculateDynamicTariff(solarMw);
+    const tariffSpread = Math.max(1.5, peakGridTariff - dynamicSolarTariff);
     
     // Calculate total system costs (absolute) instead of marginal
     const costSolar = solarMw * 40000000; // 4Cr/MW solar
     const costBattery = batteryMwh * 25000000; // 2.5Cr/MWh BESS
     const totalInvestment = costSolar + costBattery;
     
-    // Approximate absolute annual savings based on self consumption of this setup
-    const annualSavings = ((solarMw * 4 * 330) * baseGridTariff * 1000) + (batteryMwh * 330 * (baseGridTariff - 4) * 1000);
+    // Approximate absolute annual savings based on self consumption and dynamic solar arbitrage
+    const annualSavings = ((solarMw * 4 * 330) * peakGridTariff * 1000) + (batteryMwh * 330 * tariffSpread * 1000);
     const roiYears = totalInvestment > 0 && annualSavings > 0 ? (totalInvestment / annualSavings).toFixed(1) : 'N/A';
     
     // More complex chart data for a full screen

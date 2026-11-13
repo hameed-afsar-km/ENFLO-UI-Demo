@@ -12,8 +12,9 @@ export function WeatherCard() {
         <h2 className="text-sm font-bold text-secondary-text uppercase tracking-wider">Solar Conditions</h2>
         <div className="tooltip-trigger">
           <HelpCircle size={18} />
-          <div className="tooltip-content">
-            <strong>Answers:</strong> What are the current environmental conditions affecting solar yield?
+          <div className="tooltip-content w-64">
+            <strong className="block mb-1 text-white font-bold">Solar & Weather Conditions:</strong>
+            Real-time atmospheric parameters impacting PV cell generation: Global Horizontal Irradiance (GHI), Direct Normal Irradiance (DNI), cell temperature, and wind.
           </div>
         </div>
       </div>

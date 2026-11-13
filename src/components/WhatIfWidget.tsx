@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Battery, Sun, Zap, Info } from 'lucide-react';
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useSimulation } from '@/context/SimulationContext';
+import { useSimulation, calculateDynamicTariff } from '@/context/SimulationContext';
 
 export function WhatIfWidget() {
   const { emsState } = useSimulation();
@@ -13,10 +13,12 @@ export function WhatIfWidget() {
   const [loadMw, setLoadMw] = useState(2.0); // base load
   
   const results = useMemo(() => {
-    // Heuristics for the what-if impact
+    // Heuristics for the what-if impact with dynamic solar tariff
     const baseBattery = 2.0;
     const baseSolar = 2.5;
-    const baseGridTariff = 9.4; // peak tariff
+    const peakGridTariff = 9.80; // Peak tariff (zero solar)
+    const dynamicSolarTariff = calculateDynamicTariff(solarMw);
+    const tariffSpread = Math.max(1.5, peakGridTariff - dynamicSolarTariff);
     
     // Calculate deltas
     const addedSolar = solarMw - baseSolar;
@@ -24,7 +26,7 @@ export function WhatIfWidget() {
     
     // Impact on grid import during peak
     const dailyGridPeakReductionMwh = Math.max(0, Math.min(addedBattery + (addedSolar * 0.2), loadMw * 4)); 
-    const dailySavingsIncrease = dailyGridPeakReductionMwh * baseGridTariff * 1000; // rough approx Rs
+    const dailySavingsIncrease = dailyGridPeakReductionMwh * tariffSpread * 1000; // Rs saved through solar arbitrage
     
     const totalInvestment = (Math.max(addedSolar, 0) * 40000000) + (Math.max(addedBattery, 0) * 25000000); // 4Cr/MW solar, 2.5Cr/MWh BESS
     const annualSavings = dailySavingsIncrease * 330;

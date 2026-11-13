@@ -32,8 +32,9 @@ export function EventsCard() {
           </div>
           <div className="tooltip-trigger">
             <HelpCircle size={18} />
-            <div className="tooltip-content">
-              <strong>Answers:</strong> What operational events or alarms need attention?
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Telemetry Alarms & Events:</strong>
+              Real-time hardware status, string inverter fault alerts, temperature derating events, and communication link status.
             </div>
           </div>
         </div>

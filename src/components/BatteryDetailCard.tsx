@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { BatteryCharging, Activity, Thermometer, Zap, ShieldAlert, RefreshCcw, Battery, Timer } from 'lucide-react';
+import { BatteryCharging, Activity, Thermometer, Zap, ShieldAlert, RefreshCcw, Battery, Timer, HelpCircle } from 'lucide-react';
 import { useSimulation } from '@/context/SimulationContext';
 
 export function BatteryDetailCard() {
@@ -21,9 +21,18 @@ export function BatteryDetailCard() {
   return (
     <div className="solid-card p-5 flex flex-col h-full group bg-white">
       <div className="flex justify-between items-start mb-6">
-        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-          <Battery size={16} className="text-emerald-500"/> BESS Diagnostics
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+            <Battery size={16} className="text-emerald-500"/> BESS Diagnostics
+          </h2>
+          <div className="tooltip-trigger">
+            <HelpCircle size={16} />
+            <div className="tooltip-content w-64">
+              <strong className="block mb-1 text-white font-bold">Battery Storage System:</strong>
+              Monitors the Battery Energy Storage System (BESS): State of Charge (SoC), State of Health (SOH), degradation, round-trip efficiency (RTE), and live MW power.
+            </div>
+          </div>
+        </div>
         <div className={`px-2 py-1 text-[10px] font-bold rounded-lg border uppercase tracking-wide flex items-center gap-1 ${getStatusColor()}`}>
           {battery.state === 'Charging' && <Zap size={10} />}
           {battery.state === 'Reserve' && <ShieldAlert size={10} />}

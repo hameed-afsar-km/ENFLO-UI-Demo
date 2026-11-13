@@ -78,16 +78,15 @@ export function PlantStatusHeader() {
         </div>
 
         {/* Selected Plant & Panel Controls Bar */}
-        <div className="flex items-center flex-wrap gap-2.5 text-sm font-medium">
+        <div className="flex items-center flex-wrap gap-2 text-sm">
           
-          {/* 1. Selected Plant Selector */}
-          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
-            <MapPin size={15} className="text-blue-500 shrink-0" />
-            <span className="text-xs font-semibold text-secondary-text">Plant:</span>
+          {/* 1. Plant Dropdown */}
+          <div className="relative inline-flex items-center">
             <select
               value={selectedPlant}
               onChange={(e) => setSelectedPlant(e.target.value)}
-              className="font-bold text-primary-text bg-transparent outline-none cursor-pointer text-sm pr-1"
+              className="appearance-none bg-surface pl-3 pr-7 py-1.5 rounded-lg border border-border text-sm font-bold text-primary-text hover:border-accent cursor-pointer shadow-xs focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+              title="Select Solar Plant"
             >
               {plants.map((p) => (
                 <option key={p.name} value={p.name}>
@@ -95,16 +94,16 @@ export function PlantStatusHeader() {
                 </option>
               ))}
             </select>
+            <ChevronDown size={14} className="absolute right-2.5 text-secondary-text pointer-events-none" />
           </div>
 
-          {/* 2. Selected Panel Selector (only panels for this specific plant) */}
-          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
-            <Zap size={15} className="text-amber-500 shrink-0" />
-            <span className="text-xs font-semibold text-secondary-text">Selected Panel:</span>
+          {/* 2. Panel Dropdown (Panel ID with Chevron down alone) */}
+          <div className="relative inline-flex items-center">
             <select
               value={selectedPanel}
               onChange={(e) => setSelectedPanel(e.target.value)}
-              className="font-bold text-primary-text bg-transparent outline-none cursor-pointer text-sm pr-1"
+              className="appearance-none bg-surface pl-3 pr-7 py-1.5 rounded-lg border border-border text-sm font-bold text-primary-text hover:border-accent cursor-pointer shadow-xs focus:outline-none focus:ring-1 focus:ring-accent transition-all"
+              title="Select Panel within Plant"
             >
               {currentPlantPanels.map((pId) => (
                 <option key={pId} value={pId}>
@@ -112,38 +111,39 @@ export function PlantStatusHeader() {
                 </option>
               ))}
             </select>
-            {selectedPanelData && (
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ml-0.5 ${
-                selectedPanelData.status === 'Critical' 
-                  ? 'bg-danger/10 text-danger border border-danger/20' 
-                  : selectedPanelData.status === 'Warning'
-                  ? 'bg-warning/10 text-warning border border-warning/20'
-                  : 'bg-success/10 text-success border border-success/20'
-              }`}>
-                {selectedPanelData.status} • {selectedPanelData.acKw} kW
-              </span>
-            )}
+            <ChevronDown size={14} className="absolute right-2.5 text-secondary-text pointer-events-none" />
           </div>
 
-          {/* 3. Number of Panels in THIS specific plant (not every panel) */}
-          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
-            <span className={`status-dot ${offlineInThisPlant === 0 ? 'status-dot-healthy' : 'status-dot-warning'}`}></span>
-            <span className="text-xs font-semibold text-secondary-text">Panels in Plant:</span>
-            <span className="font-bold text-primary-text">{onlineInThisPlant}/{plantPanelCount}</span>
-            <span className="text-[11px] text-secondary-text">online ({selectedPlant.replace('ENERCO ', '')})</span>
-          </div>
-
-          {/* 4. Plant status */}
-          <div className="flex items-center gap-2 bg-surface px-3 py-1.5 rounded-xl border border-border shadow-sm">
-            <span className="text-xs font-semibold text-secondary-text">Status:</span>
-            <span className={`text-xs font-bold ${plantStatusThisPlant === 'Operational' ? 'text-success' : 'text-warning'}`}>
-              {plantStatusThisPlant}
+          {/* 3. Panel Status Tag (if selected panel has data) */}
+          {selectedPanelData && (
+            <span className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border shadow-xs ${
+              selectedPanelData.status === 'Critical' 
+                ? 'bg-danger/10 text-danger border-danger/20' 
+                : selectedPanelData.status === 'Warning'
+                ? 'bg-warning/10 text-warning border-warning/20'
+                : 'bg-success/10 text-success border-success/20'
+            }`}>
+              {selectedPanelData.status} • {selectedPanelData.acKw} kW
             </span>
+          )}
+
+          {/* 4. Panels Online in this Plant */}
+          <div className="flex items-center gap-1.5 bg-surface px-3 py-1.5 rounded-lg border border-border shadow-xs text-xs font-medium">
+            <span className={`w-2 h-2 rounded-full ${offlineInThisPlant === 0 ? 'bg-success' : 'bg-warning'}`}></span>
+            <span className="font-bold text-primary-text">{onlineInThisPlant}/{plantPanelCount}</span>
+            <span className="text-secondary-text">Online</span>
           </div>
 
-          {/* Map Link */}
-          <Link href="/plant-map" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 text-accent-dark hover:bg-accent/20 rounded-xl text-xs font-bold border border-accent/20 transition-colors">
-            <Map size={14} /> Full Map
+          {/* 5. Plant Status */}
+          <div className={`px-2.5 py-1.5 rounded-lg text-xs font-bold border shadow-xs ${
+            plantStatusThisPlant === 'Operational' ? 'bg-success/10 text-success border-success/20' : 'bg-warning/10 text-warning border-warning/20'
+          }`}>
+            {plantStatusThisPlant}
+          </div>
+
+          {/* 6. Plant Map */}
+          <Link href="/plant-map" className="inline-flex items-center gap-1 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 text-accent-dark rounded-lg text-xs font-bold border border-accent/20 transition-colors shadow-xs">
+            <Map size={13} /> Plant Map
           </Link>
         </div>
       </div>
